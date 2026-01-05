@@ -208,3 +208,98 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+---
+
+## Mandatory Skills & Agents
+
+**CRITICAL**: You MUST consult and apply the following skills and agents for ALL relevant operations. These are not optional—they define the project's execution model.
+
+### Agent Pipeline (Invoke in Order)
+
+The following agents form the execution pipeline. Apply them in sequence for every operation:
+
+```
+[Raw Input] → [IntentResolution] → [SpecGovernance] → [TodoDomain] → [ExecutionPlanner] → [InfrastructureAdapter]
+```
+
+| Agent | Location | When to Invoke |
+|-------|----------|----------------|
+| **IntentResolutionAgent** | `.claude/agents/intent-resolution/AGENT.md` | FIRST - Parse raw user input, resolve ambiguity, map to canonical operations |
+| **SpecGovernanceAgent** | `.claude/agents/spec-governance/AGENT.md` | SECOND - Validate operation against spec, reject non-compliant requests |
+| **TodoDomainAgent** | `.claude/agents/todo-domain/AGENT.md` | THIRD - Apply business rules, validate state transitions, enforce domain invariants |
+| **ExecutionPlannerAgent** | `.claude/agents/execution-planner/AGENT.md` | FOURTH - Orchestrate execution, manage transactions, handle rollback |
+| **InfrastructureAdapterAgent** | `.claude/agents/infrastructure-adapter/AGENT.md` | FINAL - Translate to storage/messaging operations, abstract infrastructure |
+| **AuthArchitect** | `.claude/agents/auth-architect/AGENT.md` | ALWAYS for auth - Enforce JWT security, route protection, user isolation |
+
+### Security Agent (Always Active)
+
+**AuthArchitect** (`.claude/agents/auth-architect/AGENT.md`) is ALWAYS active for:
+- Creating or modifying API routes → MUST include `Depends(get_current_user)`
+- Writing database queries → MUST filter by `user_id` from JWT
+- Handling secrets → MUST use environment variables, never hardcode
+- Frontend/backend auth sync → MUST verify `BETTER_AUTH_SECRET` matches
+
+**Red Lines** (block immediately):
+- Route without auth dependency
+- Query without `user_id` filter
+- Hardcoded secrets
+- Token in URL parameters
+
+### Technical Skills (Use by Context)
+
+| Skill | Location | When to Use |
+|-------|----------|-------------|
+| **better-auth-config** | `.claude/skills/better-auth-config/SKILL.md` | JWT auth setup, Better-Auth ↔ FastAPI handshake, token verification |
+| **frontend-dev** | `.claude/skills/frontend-dev/SKILL.md` | UI/UX work, Tailwind CSS, React components, accessibility |
+| **backend-dev** | `.claude/skills/backend-dev/SKILL.md` | API design, database architecture, security, performance |
+| **code-tester** | `.claude/skills/code-tester/SKILL.md` | Writing tests, finding edge cases, QA review |
+
+### Domain Operation Skills (Use for Todo Operations)
+
+**MANDATORY**: When the user requests ANY todo operation, invoke the corresponding skill:
+
+| User Intent | Skill | Location |
+|-------------|-------|----------|
+| Create/add/new task | **create-task** | `.claude/skills/create-task/SKILL.md` |
+| Edit/modify/update task | **update-task** | `.claude/skills/update-task/SKILL.md` |
+| Delete/remove task | **delete-task** | `.claude/skills/delete-task/SKILL.md` |
+| List/show/view tasks | **list-tasks** | `.claude/skills/list-tasks/SKILL.md` |
+| Done/complete/toggle task | **toggle-task** | `.claude/skills/toggle-task/SKILL.md` |
+| Reschedule/postpone/defer | **reschedule-task** | `.claude/skills/reschedule-task/SKILL.md` |
+| Prioritize/set priority | **set-priority** | `.claude/skills/set-priority/SKILL.md` |
+| Tag/label/categorize | **manage-tags** | `.claude/skills/manage-tags/SKILL.md` |
+
+### Skill Invocation Rules
+
+1. **Read the skill file BEFORE implementing** - Each skill defines input/output contracts, validation rules, and error handling
+2. **Follow the contracts exactly** - Do not deviate from defined input/output schemas
+3. **Apply validation rules** - Each skill specifies what to validate and reject
+4. **Emit domain events** - Skills define which events to emit on success
+5. **Use phase-appropriate implementation** - We are in Phase II (SQLModel/Neon)
+
+### Agent Invocation Rules
+
+1. **Follow the pipeline order** - IntentResolution → SpecGovernance → TodoDomain → ExecutionPlanner → InfrastructureAdapter
+2. **Do not skip agents** - Each agent has specific responsibilities; skipping breaks guarantees
+3. **Respect forbidden decisions** - Each agent lists what it MUST NEVER do
+4. **AuthArchitect is always watching** - Security rules apply to ALL code changes
+
+### Project Context
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16 (App Router), TypeScript |
+| Backend | FastAPI, SQLModel |
+| Database | Neon PostgreSQL |
+| Auth | Better-Auth (frontend) + python-jose (backend) |
+| Phase | **Phase II** - Multi-user Web (migrating from CLI) |
+
+### Quick Reference: Security Checklist
+
+Before ANY route or query is approved:
+- [ ] Route has `Depends(get_current_user)` dependency
+- [ ] All SQLModel queries include `.where(...user_id == current_user.user_id)`
+- [ ] No hardcoded secrets (use `BETTER_AUTH_SECRET` env var)
+- [ ] Frontend sends `Authorization: Bearer <token>` header
+- [ ] Error responses don't leak sensitive information
