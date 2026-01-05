@@ -1,0 +1,363 @@
+openapi: 3.1.0
+info:
+  title: Phase II Multi-User Todo API
+  description: REST API for multi-user task management with JWT authentication
+  version: 1.0.0
+  contact:
+    name: Todo Hackathon Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.todo.example.com
+    description: Production
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/tasks:
+    get:
+      operationId: listTasks
+      summary: List all tasks for authenticated user
+      description: Returns all tasks belonging to the authenticated user, ordered by creation date descending
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskRead'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      operationId: createTask
+      summary: Create a new task
+      description: Creates a new task for the authenticated user
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+
+    get:
+      operationId: getTask
+      summary: Get a specific task
+      description: Returns a single task if it belongs to the authenticated user
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      operationId: updateTask
+      summary: Update a task
+      description: Updates an existing task (full replacement)
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      operationId: patchTask
+      summary: Partially update a task
+      description: Updates specific fields of a task (partial update)
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      operationId: deleteTask
+      summary: Delete a task
+      description: Permanently deletes a task
+      tags:
+        - Tasks
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/tasks/{taskId}/toggle:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+
+    post:
+      operationId: toggleTask
+      summary: Toggle task completion status
+      description: Flips the completed status of a task
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Task toggled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Returns service health status (no authentication required)
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better-Auth
+
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      description: Unique task identifier (UUID)
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+
+  schemas:
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Task description
+          example: "Buy groceries"
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Updated task description
+          example: "Buy groceries and milk"
+        completed:
+          type: boolean
+          description: Completion status
+          example: true
+
+    TaskRead:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - completed
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique task identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          format: uuid
+          description: Owner identifier
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        title:
+          type: string
+          description: Task description
+          example: "Buy groceries"
+        completed:
+          type: boolean
+          description: Whether the task is completed
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Task creation timestamp
+          example: "2026-01-05T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last modification timestamp
+          example: "2026-01-05T12:00:00Z"
+
+    Error:
+      type: object
+      required:
+        - detail
+        - code
+        - status
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Task not found"
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "NOT_FOUND"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Title must be between 1 and 500 characters"
+            code: "VALIDATION_ERROR"
+            status: 400
+
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Invalid or expired token"
+            code: "UNAUTHORIZED"
+            status: 401
+
+    NotFound:
+      description: Resource not found or not accessible
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Task not found"
+            code: "NOT_FOUND"
+            status: 404
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "An unexpected error occurred"
+            code: "INTERNAL_ERROR"
+            status: 500
+
+tags:
+  - name: Tasks
+    description: Task management endpoints (all require authentication)
+  - name: System
+    description: System endpoints (health checks, etc.)
