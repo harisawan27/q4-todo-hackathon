@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
-    smtp_from_email: str = ""
-    smtp_from_name: str = "Todo App"
+    smtp_from_email: str = "111harisawan@gmail.com"
+    smtp_from_name: str = "Task Flow"
     email_enabled: bool = False
 
     # Notification Settings

@@ -117,10 +117,10 @@ class EmailService:
                         <p>Due Date: <span class="due-date">{due_date_str}</span></p>
                     </div>
                     <p>Don't forget to complete this task before the deadline!</p>
-                    <a href="http://localhost:3000/dashboard" class="btn">View Task</a>
+                    <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="btn">View Task</a>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by Todo App</p>
+                    <p>This email was sent by TaskFlow</p>
                     <p>You're receiving this because you have email notifications enabled.</p>
                 </div>
             </div>
@@ -140,10 +140,10 @@ class EmailService:
 
         Don't forget to complete this task before the deadline!
 
-        View your tasks at: http://localhost:3000/dashboard
+        View your tasks at: https://q4-todo-hackathon.vercel.app/dashboard
 
         ---
-        This email was sent by Todo App
+        This email was sent by TaskFlow
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
@@ -184,7 +184,7 @@ class EmailService:
                     </div>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by Todo App</p>
+                    <p>This email was sent by TaskFlow</p>
                 </div>
             </div>
         </body>
@@ -201,7 +201,7 @@ class EmailService:
         Task: {task_title}
 
         ---
-        This email was sent by Todo App
+        This email was sent by TaskFlow
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
@@ -242,7 +242,7 @@ class EmailService:
                     <p style="text-align: center;">Keep up the great work!</p>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by Todo App</p>
+                    <p>This email was sent by TaskFlow</p>
                 </div>
             </div>
         </body>
@@ -261,7 +261,7 @@ class EmailService:
         Keep up the great work!
 
         ---
-        This email was sent by Todo App
+        This email was sent by TaskFlow
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
