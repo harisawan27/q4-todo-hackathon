@@ -13,6 +13,8 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,
   database: pool,
+
+  baseURL: "https://q4-todo-hackathon.vercel.app",
   
   trustedOrigins: [
     "https://https://q4-todo-hackathon.vercel.app", // Your production URL
