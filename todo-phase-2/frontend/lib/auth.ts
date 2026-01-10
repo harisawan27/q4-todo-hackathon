@@ -7,6 +7,8 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false, // Essential for Neon/Vercel compatibility
   },
+  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 30000,
 });
 
 export const auth = betterAuth({
