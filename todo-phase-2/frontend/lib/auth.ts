@@ -17,6 +17,14 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
   },
+  user: {
+    changeEmail: {
+      enabled: true,
+    },
+    deleteUser: {
+      enabled: true,
+    },
+  },
   plugins: [
     jwt({
       jwt: {

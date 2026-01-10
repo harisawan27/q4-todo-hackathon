@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { jsPDF } from "jspdf";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -9,21 +10,6 @@ import { useToast } from "@/components/ui/toast";
 import { useSettings, Theme, Language } from "@/lib/settings-context";
 import { apiGet, apiDelete } from "@/lib/api";
 import type { Task } from "@/types/task";
-
-const TIMEZONES = [
-  { value: "UTC", label: "UTC" },
-  { value: "America/New_York", label: "Eastern Time (US)" },
-  { value: "America/Chicago", label: "Central Time (US)" },
-  { value: "America/Denver", label: "Mountain Time (US)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (US)" },
-  { value: "Europe/London", label: "London" },
-  { value: "Europe/Paris", label: "Paris" },
-  { value: "Europe/Berlin", label: "Berlin" },
-  { value: "Asia/Tokyo", label: "Tokyo" },
-  { value: "Asia/Shanghai", label: "Shanghai" },
-  { value: "Asia/Kolkata", label: "India (IST)" },
-  { value: "Australia/Sydney", label: "Sydney" },
-];
 
 const LANGUAGES = [
   { value: "en", label: "English" },
@@ -55,23 +41,112 @@ export default function SettingsPage() {
   const handleExport = async () => {
     try {
       const tasks = await apiGet<Task[]>("/api/tasks");
-      const data = {
-        exportedAt: new Date().toISOString(),
-        settings: { notifications, preferences },
-        tasks,
-      };
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - 2 * margin;
+      let y = 20;
 
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `taskflow-export-${new Date().toISOString().split("T")[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Title
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("TaskFlow Export", pageWidth / 2, y, { align: "center" });
+      y += 15;
 
-      toast.success("Export successful", "Your data has been downloaded");
+      // Export date
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(128);
+      doc.text(`Exported on ${new Date().toLocaleDateString()}`, pageWidth / 2, y, { align: "center" });
+      doc.setTextColor(0);
+      y += 15;
+
+      // Summary section
+      const completedCount = tasks.filter((t) => t.completed).length;
+      const pendingCount = tasks.length - completedCount;
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Summary", margin, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Total Tasks: ${tasks.length}`, margin, y);
+      y += 6;
+      doc.text(`Completed: ${completedCount}`, margin, y);
+      y += 6;
+      doc.text(`Pending: ${pendingCount}`, margin, y);
+      y += 15;
+
+      // Tasks section
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Tasks", margin, y);
+      y += 10;
+
+      if (tasks.length === 0) {
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(128);
+        doc.text("No tasks to display", margin, y);
+      } else {
+        tasks.forEach((task, index) => {
+          // Check if we need a new page
+          if (y > doc.internal.pageSize.getHeight() - 40) {
+            doc.addPage();
+            y = 20;
+          }
+
+          // Task number and checkbox
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(0);
+          const checkbox = task.completed ? "[x]" : "[ ]";
+          doc.text(`${index + 1}. ${checkbox} ${task.title}`, margin, y);
+          y += 6;
+
+          // Task details
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(80);
+
+          if (task.description) {
+            const descLines = doc.splitTextToSize(`Description: ${task.description}`, contentWidth - 10);
+            doc.text(descLines, margin + 5, y);
+            y += descLines.length * 4 + 2;
+          }
+
+          const details: string[] = [];
+          if (task.due_date) details.push(`Due: ${task.due_date}`);
+          if (task.priority) details.push(`Priority: ${task.priority}`);
+          if (task.tags && task.tags.length > 0) details.push(`Tags: ${task.tags.join(", ")}`);
+
+          if (details.length > 0) {
+            doc.text(details.join("  |  "), margin + 5, y);
+            y += 6;
+          }
+
+          y += 4; // Space between tasks
+        });
+      }
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: "center" }
+        );
+      }
+
+      doc.save(`taskflow-export-${new Date().toISOString().split("T")[0]}.pdf`);
+      toast.success("Export successful", "Your data has been downloaded as PDF");
     } catch {
       toast.error("Export failed", "Could not export your data");
     }
@@ -228,35 +303,19 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language</label>
-                <select
-                  value={preferences.language}
-                  onChange={(e) => setPreference("language", e.target.value as Language)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-white"
-                >
-                  {LANGUAGES.map((lang) => (
-                    <option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Timezone</label>
-                <select
-                  value={preferences.timezone}
-                  onChange={(e) => setPreference("timezone", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-white"
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language</label>
+              <select
+                value={preferences.language}
+                onChange={(e) => setPreference("language", e.target.value as Language)}
+                className="w-full sm:w-64 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-white"
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </CardContent>

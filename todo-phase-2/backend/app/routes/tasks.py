@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from app.auth.jwt_bearer import CurrentUser, get_current_user
 from app.database import get_session
 from app.models.task import Task, TaskCreate, TaskRead, TaskUpdate
+from app.services.notification import NotificationService
 
 router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
 
@@ -55,6 +56,10 @@ async def create_task(
     session.add(task)
     session.commit()
     session.refresh(task)
+
+    # Create notification for task creation
+    NotificationService.notify_task_created(session, task)
+
     return task
 
 
@@ -142,8 +147,17 @@ async def delete_task(
             detail="Task not found",
         )
 
+    # Store task info before deletion for notification
+    task_title = task.title
+    task_id_for_notif = task.id
+
     session.delete(task)
     session.commit()
+
+    # Create notification for task deletion
+    NotificationService.notify_task_deleted(
+        session, current_user.user_id, task_title, task_id_for_notif
+    )
 
 
 @router.post("/{task_id}/toggle", response_model=TaskRead)
@@ -160,9 +174,15 @@ async def toggle_task(
             detail="Task not found",
         )
 
+    was_completed = task.completed
     task.completed = not task.completed
     task.updated_at = datetime.now(timezone.utc)
     session.add(task)
     session.commit()
     session.refresh(task)
+
+    # Create notification only when task is marked as completed
+    if not was_completed and task.completed:
+        NotificationService.notify_task_completed(session, task)
+
     return task

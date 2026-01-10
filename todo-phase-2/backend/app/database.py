@@ -19,6 +19,10 @@ engine = create_engine(
 
 def init_db() -> None:
     """Create all database tables via SQLModel.metadata.create_all()"""
+    # Import models to ensure they are registered with SQLModel.metadata
+    from app.models.task import Task  # noqa: F401
+    from app.models.notification import Notification  # noqa: F401
+
     SQLModel.metadata.create_all(engine)
 
 

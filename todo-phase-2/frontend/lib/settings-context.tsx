@@ -15,7 +15,6 @@ interface NotificationSettings {
 interface Preferences {
   theme: Theme;
   language: Language;
-  timezone: string;
 }
 
 interface SettingsContextType {
@@ -37,7 +36,6 @@ const defaultNotifications: NotificationSettings = {
 const defaultPreferences: Preferences = {
   theme: "light",
   language: "en",
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

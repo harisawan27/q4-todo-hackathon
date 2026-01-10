@@ -13,6 +13,8 @@ from app.config import get_settings
 from app.database import init_db
 from app.routes.health import router as health_router
 from app.routes.tasks import router as tasks_router
+from app.routes.notifications import router as notifications_router
+from app.services.scheduler import scheduler_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +37,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     validate_environment()
     init_db()
     logger.info("Database initialized successfully")
+
+    # Start background scheduler
+    scheduler_service.start()
+    logger.info("Background scheduler started")
+
     yield
+
+    # Stop background scheduler on shutdown
+    scheduler_service.stop()
+    logger.info("Background scheduler stopped")
 
 
 app = FastAPI(
@@ -90,6 +101,7 @@ app.add_middleware(
 # Register routers
 app.include_router(health_router)
 app.include_router(tasks_router)
+app.include_router(notifications_router)
 
 
 @app.get("/")

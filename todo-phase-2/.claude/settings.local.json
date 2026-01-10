@@ -33,7 +33,13 @@
       "Bash(taskkill:*)",
       "Bash(cat:*)",
       "Bash(tasklist:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(.\\\\venv\\\\Scripts\\\\pip.exe install:*)",
+      "Bash(cmd /c \"F:\\\\q4-todo-hackathon\\\\todo-phase-2\\\\backend\\\\venv\\\\Scripts\\\\pip.exe install apscheduler\")",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

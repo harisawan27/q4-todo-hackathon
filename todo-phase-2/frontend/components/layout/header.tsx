@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useSidebar } from "@/lib/sidebar-context";
+import { NotificationBell } from "@/components/notification-panel";
 
 export function Header() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export function Header() {
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
+  const userImage = session?.user?.image;
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
@@ -80,12 +82,7 @@ export function Header() {
       {/* Right side */}
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Notifications */}
-        <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-          <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
-        </button>
+        <NotificationBell />
 
         {/* User dropdown */}
         <div className="relative" ref={dropdownRef}>
@@ -93,9 +90,17 @@ export function Header() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 sm:gap-3 rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-medium text-white">
-              {userInitial}
-            </div>
+            {userImage ? (
+              <img
+                src={userImage}
+                alt={userName}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-medium text-white">
+                {userInitial}
+              </div>
+            )}
             <div className="hidden text-left md:block">
               <p className="text-sm font-medium text-gray-900 dark:text-white">{userName}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px]">{userEmail}</p>

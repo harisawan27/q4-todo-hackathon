@@ -25,6 +25,19 @@ class Settings(BaseSettings):
     port: int = 8000
     debug: bool = False
 
+    # Email Configuration (SMTP)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "Todo App"
+    email_enabled: bool = False
+
+    # Notification Settings
+    deadline_reminder_hours: int = 24  # Send reminder X hours before deadline
+    scheduler_enabled: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:
