@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL,
   plugins: [jwtClient()],
 });
 
