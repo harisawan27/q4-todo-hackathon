@@ -2,7 +2,8 @@
 
 import { getJwtToken } from "./auth-client";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Safely remove any trailing slash from the base URL
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 interface ApiOptions extends RequestInit {
   json?: unknown;
@@ -38,10 +39,15 @@ export async function api<T>(
 ): Promise<T> {
   const { json, ...init } = options;
 
+  // Ensure the endpoint starts with a single slash
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  
   const headers = await getAuthHeaders();
 
   const config: RequestInit = {
     ...init,
+    // CRITICAL: Required for cross-domain cookies (Vercel -> Hugging Face)
+    credentials: "include", 
     headers: {
       ...headers,
       ...init.headers,
@@ -52,7 +58,8 @@ export async function api<T>(
     config.body = JSON.stringify(json);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  // Final production URL construction
+  const response = await fetch(`${API_BASE_URL}${cleanEndpoint}`, config);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({
@@ -74,7 +81,9 @@ export async function api<T>(
   return response.json();
 }
 
-// Convenience methods
+/**
+ * Convenience methods
+ */
 export const apiGet = <T>(endpoint: string) => api<T>(endpoint, { method: "GET" });
 
 export const apiPost = <T>(endpoint: string, data?: unknown) =>
