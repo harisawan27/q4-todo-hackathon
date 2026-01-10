@@ -57,7 +57,7 @@ export default function AuthLayout({
         </div>
 
         <div className="flex items-center gap-4 text-sm text-white/60">
-          <span>© 2024 TaskFlow</span>
+          <span>© 2026 TaskFlow</span>
           <span>•</span>
           <a href="#" className="hover:text-white transition-colors">Privacy</a>
           <span>•</span>
@@ -84,7 +84,7 @@ export default function AuthLayout({
 
           {/* Mobile footer */}
           <p className="mt-8 text-center text-xs text-gray-400 lg:hidden">
-            © 2024 TaskFlow. All rights reserved.
+            © 2026 TaskFlow. All rights reserved.
           </p>
         </div>
       </div>

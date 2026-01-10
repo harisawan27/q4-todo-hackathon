@@ -13,7 +13,7 @@ export default function LandingPage() {
       if (session) {
         router.push("/dashboard");
       } else {
-        router.push("/sign-in");
+        router.push("/sign-up");
       }
     }
   }, [session, isPending, router]);
