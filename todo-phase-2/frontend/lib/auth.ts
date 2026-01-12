@@ -2,6 +2,13 @@ import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { Pool } from "pg";
 
+// Debug: Log environment variables (remove in production)
+console.log("[Better Auth] Initializing with config:", {
+  DATABASE_URL: process.env.DATABASE_URL ? "SET" : "NOT SET",
+  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ? "SET" : "NOT SET",
+  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "NOT SET (using default)",
+});
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -14,16 +21,19 @@ const pool = new Pool({
 // Get auth URL from environment (defaults to localhost for development)
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 
-// Build trusted origins from environment
+// Build trusted origins - include both localhost and production
 const trustedOrigins = [
-  authUrl,
-  "http://localhost:3000", // Always allow localhost for development
+  "http://localhost:3000",
+  "https://q4-todo-hackathon.vercel.app",
 ];
 
-// Add production URL if different from authUrl
-if (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL !== authUrl) {
-  trustedOrigins.push(process.env.NEXT_PUBLIC_APP_URL);
+// Add authUrl if it's different
+if (authUrl && !trustedOrigins.includes(authUrl)) {
+  trustedOrigins.push(authUrl);
 }
+
+console.log("[Better Auth] baseURL:", authUrl);
+console.log("[Better Auth] trustedOrigins:", trustedOrigins);
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,

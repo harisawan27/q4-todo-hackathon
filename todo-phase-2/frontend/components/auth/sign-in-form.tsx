@@ -25,13 +25,19 @@ export function SignInForm() {
       });
 
       if (result.error) {
-        setError("Invalid email or password");
+        // Show the actual error message from Better Auth
+        const errorMessage = result.error.message || result.error.code || "Invalid email or password";
+        console.error("Sign-in error:", result.error);
+        setError(errorMessage);
         return;
       }
 
       router.push("/dashboard");
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
+    } catch (err) {
+      // Log the full error for debugging
+      console.error("Sign-in exception:", err);
+      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
