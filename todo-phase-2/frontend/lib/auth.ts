@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { Pool } from "@neondatabase/serverless";
 
 // Get auth URL from environment
@@ -48,5 +49,6 @@ export const auth = betterAuth({
         expirationTime: "7d",
       },
     }),
+    nextCookies(), // Must be last plugin for Next.js cookie handling
   ],
 });
