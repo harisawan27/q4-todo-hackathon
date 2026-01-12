@@ -2,38 +2,39 @@ import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { Pool } from "pg";
 
-// Debug: Log environment variables (remove in production)
-console.log("[Better Auth] Initializing with config:", {
-  DATABASE_URL: process.env.DATABASE_URL ? "SET" : "NOT SET",
-  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ? "SET" : "NOT SET",
-  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "NOT SET (using default)",
-});
+// Validate required environment variables
+if (!process.env.DATABASE_URL) {
+  console.error("[Better Auth] ERROR: DATABASE_URL is not set!");
+}
+if (!process.env.BETTER_AUTH_SECRET) {
+  console.error("[Better Auth] ERROR: BETTER_AUTH_SECRET is not set!");
+}
 
+// Create pool with Neon-optimized settings for serverless
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // Essential for Neon/Vercel compatibility
+    rejectUnauthorized: false,
   },
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
+  // Serverless-optimized settings
+  max: 1, // Single connection for serverless
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 10000,
 });
 
-// Get auth URL from environment (defaults to localhost for development)
+// Handle pool errors gracefully
+pool.on("error", (err) => {
+  console.error("[Better Auth] Database pool error:", err.message);
+});
+
+// Get auth URL from environment
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 
-// Build trusted origins - include both localhost and production
+// Trusted origins - hardcoded for reliability
 const trustedOrigins = [
   "http://localhost:3000",
   "https://q4-todo-hackathon.vercel.app",
 ];
-
-// Add authUrl if it's different
-if (authUrl && !trustedOrigins.includes(authUrl)) {
-  trustedOrigins.push(authUrl);
-}
-
-console.log("[Better Auth] baseURL:", authUrl);
-console.log("[Better Auth] trustedOrigins:", trustedOrigins);
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
