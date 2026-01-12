@@ -11,14 +11,25 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
 });
 
+// Get auth URL from environment (defaults to localhost for development)
+const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+
+// Build trusted origins from environment
+const trustedOrigins = [
+  authUrl,
+  "http://localhost:3000", // Always allow localhost for development
+];
+
+// Add production URL if different from authUrl
+if (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL !== authUrl) {
+  trustedOrigins.push(process.env.NEXT_PUBLIC_APP_URL);
+}
+
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: "https://q4-todo-hackathon.vercel.app",
+  baseURL: authUrl,
   database: pool,
-  trustedOrigins: [
-    "https://q4-todo-hackathon.vercel.app", // Your production URL
-    "http://localhost:3000",                 // Your local development URL
-  ],
+  trustedOrigins,
   
   emailAndPassword: {
     enabled: true,
