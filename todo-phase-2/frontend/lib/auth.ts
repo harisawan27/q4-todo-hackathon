@@ -16,8 +16,8 @@ export const auth = betterAuth({
   baseURL: "https://q4-todo-hackathon.vercel.app",
   database: pool,
   trustedOrigins: [
-    "https://https://q4-todo-hackathon.vercel.app", // Your production URL
-    "http://localhost:3000",             // Your local development URL
+    "https://q4-todo-hackathon.vercel.app", // Your production URL
+    "http://localhost:3000",                 // Your local development URL
   ],
   
   emailAndPassword: {

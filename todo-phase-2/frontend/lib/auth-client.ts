@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL,
+  // Use empty string for relative URLs - Better Auth handles this correctly
+  // This avoids hydration mismatch between server and client
+  baseURL: "",
   plugins: [jwtClient()],
 });
 
