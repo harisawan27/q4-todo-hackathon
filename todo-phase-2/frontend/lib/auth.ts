@@ -1,10 +1,6 @@
 import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-
-// Configure Neon for serverless (required for Node.js environments)
-neonConfig.webSocketConstructor = ws;
+import { Pool } from "@neondatabase/serverless";
 
 // Get auth URL from environment
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
@@ -16,7 +12,7 @@ const trustedOrigins = [
   "https://taskflow-ajf1nt772-muhammad-haris-awans-projects.vercel.app",
 ];
 
-// Create Neon serverless pool (lazy connection)
+// Create Neon serverless pool - no ws config needed on Vercel
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
