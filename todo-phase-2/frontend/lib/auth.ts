@@ -9,10 +9,11 @@ neonConfig.webSocketConstructor = ws;
 // Get auth URL from environment
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 
-// Trusted origins - hardcoded for reliability
+// Trusted origins - include production and preview deployments
 const trustedOrigins = [
   "http://localhost:3000",
   "https://q4-todo-hackathon.vercel.app",
+  "https://taskflow-ajf1nt772-muhammad-haris-awans-projects.vercel.app",
 ];
 
 // Create Neon serverless pool (lazy connection)
@@ -25,7 +26,15 @@ export const auth = betterAuth({
   baseURL: authUrl,
   database: pool,
   trustedOrigins,
-  
+
+  advanced: {
+    // Allow cross-origin requests from trusted origins
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: ".vercel.app",
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
   },
