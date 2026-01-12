@@ -1,31 +1,10 @@
 import { betterAuth } from "better-auth";
 import { jwt } from "better-auth/plugins";
-import { Pool } from "pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-// Validate required environment variables
-if (!process.env.DATABASE_URL) {
-  console.error("[Better Auth] ERROR: DATABASE_URL is not set!");
-}
-if (!process.env.BETTER_AUTH_SECRET) {
-  console.error("[Better Auth] ERROR: BETTER_AUTH_SECRET is not set!");
-}
-
-// Create pool with Neon-optimized settings for serverless
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  // Serverless-optimized settings
-  max: 1, // Single connection for serverless
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 10000,
-});
-
-// Handle pool errors gracefully
-pool.on("error", (err) => {
-  console.error("[Better Auth] Database pool error:", err.message);
-});
+// Configure Neon for serverless (required for Node.js environments)
+neonConfig.webSocketConstructor = ws;
 
 // Get auth URL from environment
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
@@ -35,6 +14,11 @@ const trustedOrigins = [
   "http://localhost:3000",
   "https://q4-todo-hackathon.vercel.app",
 ];
+
+// Create Neon serverless pool (lazy connection)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,

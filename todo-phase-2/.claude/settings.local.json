@@ -39,7 +39,8 @@
       "Bash(.\\\\venv\\\\Scripts\\\\pip.exe install:*)",
       "Bash(cmd /c \"F:\\\\q4-todo-hackathon\\\\todo-phase-2\\\\backend\\\\venv\\\\Scripts\\\\pip.exe install apscheduler\")",
       "Bash(npm run type-check:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }
