@@ -23,14 +23,6 @@ export const auth = betterAuth({
   database: pool,
   trustedOrigins,
 
-  advanced: {
-    // Allow cross-origin requests from trusted origins
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: ".vercel.app",
-    },
-  },
-
   emailAndPassword: {
     enabled: true,
   },
