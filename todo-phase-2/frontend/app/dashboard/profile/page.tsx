@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import imageCompression from "browser-image-compression";
 
 // Helper to update user profile via custom API
 async function updateUserProfile(data: { name?: string; image?: string | null }) {
@@ -114,15 +115,20 @@ export default function ProfilePage() {
       return;
     }
 
-    // Validate file size (max 500KB for base64 storage)
-    if (file.size > 500 * 1024) {
-      toast.error("File too large", "Please select an image under 500KB");
-      return;
-    }
-
     setIsUploadingImage(true);
     try {
-      // Convert to base64 data URL for storage
+      // Compression options to keep file under 50KB
+      const options = {
+        maxSizeMB: 0.05, // 50KB max
+        maxWidthOrHeight: 200, // Resize to 200px (good for profile pics)
+        useWebWorker: true,
+        fileType: "image/jpeg" as const, // Convert to JPEG for better compression
+      };
+
+      // Compress the image
+      const compressedFile = await imageCompression(file, options);
+
+      // Convert compressed image to base64 data URL for storage
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result as string;
@@ -141,9 +147,9 @@ export default function ProfilePage() {
         toast.error("Read failed", "Could not read the image file");
         setIsUploadingImage(false);
       };
-      reader.readAsDataURL(file);
-    } catch {
-      toast.error("Upload failed", "An unexpected error occurred");
+      reader.readAsDataURL(compressedFile);
+    } catch (error) {
+      toast.error("Compression failed", error instanceof Error ? error.message : "Failed to process image");
       setIsUploadingImage(false);
     }
 
@@ -322,7 +328,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1">
               <p className="text-sm text-gray-600 mb-3">
-                Upload a new profile picture. Recommended size: 200x200 pixels. Max file size: 500KB.
+                Upload a new profile picture. Images will be automatically compressed and resized to 200x200 pixels.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
