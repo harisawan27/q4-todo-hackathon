@@ -48,6 +48,15 @@ export const auth = betterAuth({
       jwt: {
         expirationTime: "7d",
       },
+      // Exclude large fields from JWT payload to prevent header size issues
+      // Image URLs are stored in DB and fetched via session, not in token
+      schema: {
+        user: {
+          fields: {
+            image: false, // Exclude base64 images from JWT to prevent header overflow
+          },
+        },
+      },
     }),
     nextCookies(), // Must be last plugin for Next.js cookie handling
   ],
