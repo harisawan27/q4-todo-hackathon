@@ -34,6 +34,9 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 5 * 60,
     },
+    // Force fresh user data fetch on each session request
+    // This ensures image updates are reflected immediately
+    freshAge: 0,
   },
   user: {
     changeEmail: {
@@ -41,6 +44,17 @@ export const auth = betterAuth({
     },
     deleteUser: {
       enabled: true,
+    },
+    // IMPORTANT: Do NOT include image in session to prevent header overflow
+    // Images are base64 data and will exceed Vercel's 16KB header limit
+    // Fetch images separately via API instead
+    additionalFields: {
+      image: {
+        type: "string",
+        required: false,
+        // CRITICAL: Set to false to exclude from session/JWT/cookies
+        returned: false,
+      },
     },
   },
   plugins: [

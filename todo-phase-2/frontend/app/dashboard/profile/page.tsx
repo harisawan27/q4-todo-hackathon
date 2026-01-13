@@ -52,6 +52,10 @@ export default function ProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // Fetch user image separately to avoid header overflow
+  const [userImage, setUserImage] = useState<string | null>(null);
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+
   // Initialize name from session
   useEffect(() => {
     if (session?.user?.name) {
@@ -59,9 +63,30 @@ export default function ProfilePage() {
     }
   }, [session?.user?.name]);
 
+  // Fetch user image from API (NOT from session to prevent header overflow)
+  useEffect(() => {
+    const fetchUserImage = async () => {
+      try {
+        setIsLoadingImage(true);
+        const response = await fetch("/api/user/image");
+        if (response.ok) {
+          const data = await response.json();
+          setUserImage(data.image);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user image:", error);
+      } finally {
+        setIsLoadingImage(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchUserImage();
+    }
+  }, [session?.user]);
+
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
-  const userImage = session?.user?.image;
   const userInitial = userName.charAt(0).toUpperCase();
   const createdAt = session?.user?.createdAt
     ? new Date(session.user.createdAt).toLocaleDateString("en-US", {
@@ -135,7 +160,12 @@ export default function ProfilePage() {
 
         try {
           await updateUserProfile({ image: base64Image });
-          await refetch();
+          // Refetch the image from the API to display it immediately
+          const imageResponse = await fetch("/api/user/image");
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            setUserImage(imageData.image);
+          }
           toast.success("Profile picture updated", "Your profile picture has been changed");
         } catch (error) {
           toast.error("Upload failed", error instanceof Error ? error.message : "Failed to upload image");
@@ -151,11 +181,10 @@ export default function ProfilePage() {
     } catch (error) {
       toast.error("Compression failed", error instanceof Error ? error.message : "Failed to process image");
       setIsUploadingImage(false);
-    }
-
-    // Reset the input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      // Reset the input on error
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -163,7 +192,8 @@ export default function ProfilePage() {
     setIsUploadingImage(true);
     try {
       await updateUserProfile({ image: null });
-      await refetch();
+      // Update local state immediately
+      setUserImage(null);
       toast.success("Profile picture removed", "Your profile picture has been removed");
     } catch (error) {
       toast.error("Remove failed", error instanceof Error ? error.message : "Failed to remove image");

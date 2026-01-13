@@ -14,6 +14,9 @@ export function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Fetch user image separately to avoid header overflow
+  const [userImage, setUserImage] = useState<string | null>(null);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -24,6 +27,25 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch user image from API (NOT from session to prevent header overflow)
+  useEffect(() => {
+    const fetchUserImage = async () => {
+      try {
+        const response = await fetch("/api/user/image");
+        if (response.ok) {
+          const data = await response.json();
+          setUserImage(data.image);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user image:", error);
+      }
+    };
+
+    if (session?.user) {
+      fetchUserImage();
+    }
+  }, [session?.user]);
+
   const handleSignOut = async () => {
     await signOut();
     router.push("/sign-in");
@@ -31,7 +53,6 @@ export function Header() {
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
-  const userImage = session?.user?.image;
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
