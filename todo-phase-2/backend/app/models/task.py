@@ -1,6 +1,6 @@
 """Task model and schemas for the Todo application"""
 
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, time
 from typing import Optional, List
 from uuid import uuid4
 from enum import Enum
@@ -24,6 +24,7 @@ class TaskCreate(SQLModel):
     title: str = Field(min_length=1, max_length=500)
     description: Optional[str] = Field(default=None, max_length=2000)
     due_date: Optional[date] = Field(default=None)
+    due_time: Optional[time] = Field(default=None)
     priority: Optional[Priority] = Field(default=None)
     tags: Optional[List[str]] = Field(default=None)
 
@@ -76,6 +77,7 @@ class Task(SQLModel, table=True):
     title: str = Field(max_length=500)
     description: Optional[str] = Field(default=None, max_length=2000)
     due_date: Optional[date] = Field(default=None)
+    due_time: Optional[time] = Field(default=None)
     priority: Optional[str] = Field(default=None, sa_column=Column(String(10)))
     tags: List[str] = Field(default=[], sa_column=Column(JSON))
     completed: bool = Field(default=False)
@@ -93,6 +95,7 @@ class TaskUpdate(SQLModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=500)
     description: Optional[str] = Field(default=None, max_length=2000)
     due_date: Optional[date] = None
+    due_time: Optional[time] = None
     priority: Optional[str] = None
     tags: Optional[List[str]] = None
     completed: Optional[bool] = None
@@ -144,6 +147,7 @@ class TaskRead(SQLModel):
     title: str
     description: Optional[str] = None
     due_date: Optional[date] = None
+    due_time: Optional[time] = None
     priority: Optional[str] = None
     tags: List[str] = []
     completed: bool
