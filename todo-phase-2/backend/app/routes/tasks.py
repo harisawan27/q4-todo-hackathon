@@ -50,6 +50,7 @@ async def create_task(
         user_id=current_user.user_id,
         description=task_data.description,
         due_date=task_data.due_date,
+        due_time=task_data.due_time,
         priority=task_data.priority.value if task_data.priority else None,
         tags=task_data.tags if task_data.tags else [],
     )
