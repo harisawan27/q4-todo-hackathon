@@ -13,12 +13,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track and manage your tasks efficiently</p>
         </div>
-        <div className="hidden sm:block">
+        <div className="hidden sm:block shrink-0">
           <span className="inline-flex items-center gap-2 rounded-full bg-green-50 dark:bg-green-900/30 px-3 py-1 text-sm text-green-700 dark:text-green-300">
             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             All systems operational

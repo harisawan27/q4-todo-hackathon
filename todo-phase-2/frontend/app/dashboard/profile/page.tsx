@@ -213,7 +213,7 @@ export default function ProfilePage() {
       {/* Profile Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               {/* Profile Picture */}
               <div className="relative group">
@@ -254,13 +254,13 @@ export default function ProfilePage() {
                   className="hidden"
                 />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">{userName}</h2>
-                <p className="text-sm text-gray-500">{userEmail}</p>
+              <div className="min-w-0">
+                <h2 className="text-xl font-semibold text-gray-900 truncate">{userName}</h2>
+                <p className="text-sm text-gray-500 truncate">{userEmail}</p>
               </div>
             </div>
             {!isEditing && (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
+              <Button variant="outline" onClick={() => setIsEditing(true)} className="w-full sm:w-auto">
                 <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
@@ -303,8 +303,8 @@ export default function ProfilePage() {
 
             {/* Actions */}
             {isEditing && (
-              <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                <Button onClick={handleSave} disabled={isSaving}>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-gray-100">
+                <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
                   {isSaving ? (
                     <>
                       <svg className="h-4 w-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -317,7 +317,7 @@ export default function ProfilePage() {
                     "Save Changes"
                   )}
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving} className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </div>
@@ -342,8 +342,8 @@ export default function ProfilePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-6">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="relative shrink-0">
               {userImage ? (
                 <img
                   src={userImage}
@@ -356,15 +356,16 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-center sm:text-left w-full">
               <p className="text-sm text-gray-600 mb-3">
                 Upload a new profile picture. Images will be automatically compressed and resized to 200x200 pixels.
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
+                  className="w-full sm:w-auto"
                 >
                   {isUploadingImage ? (
                     <>
@@ -388,7 +389,7 @@ export default function ProfilePage() {
                     variant="outline"
                     onClick={handleRemoveImage}
                     disabled={isUploadingImage}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
                   >
                     <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -455,13 +456,13 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border border-red-100 bg-red-50">
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-red-900">Delete Account</p>
               <p className="text-xs text-red-600 mt-1">Permanently delete your account and all data</p>
             </div>
             <Button
               variant="destructive"
-              className="shrink-0"
+              className="shrink-0 w-full sm:w-auto"
               onClick={() => setShowDeleteDialog(true)}
             >
               Delete Account

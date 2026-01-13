@@ -43,6 +43,27 @@ function formatDueTime(dueTime: string | null): string {
   return `${hour12}:${minutes} ${period}`;
 }
 
+// Calculate hours remaining until deadline (returns null if > 24 hours or no time set)
+function getHoursRemaining(dueDate: string | null, dueTime: string | null): number | null {
+  if (!dueDate || !dueTime) return null;
+
+  const now = new Date();
+  const deadline = new Date(dueDate);
+
+  // Parse the time (HH:MM:SS format)
+  const [hours, minutes, seconds = "0"] = dueTime.split(":");
+  deadline.setHours(parseInt(hours, 10), parseInt(minutes, 10), parseInt(seconds, 10), 0);
+
+  const msRemaining = deadline.getTime() - now.getTime();
+
+  // Only show if within next 24 hours and not yet passed
+  if (msRemaining <= 0 || msRemaining > 24 * 60 * 60 * 1000) {
+    return null;
+  }
+
+  return Math.floor(msRemaining / (1000 * 60 * 60)); // Convert to hours
+}
+
 // Format due date for display
 function formatDueDate(dueDate: string | null, dueTime: string | null): string {
   if (!dueDate) return "";
@@ -119,6 +140,7 @@ export function TaskItem({ task }: TaskItemProps) {
   const dueDateStatus = getDueDateStatus(task.due_date);
   const priorityConfig = task.priority ? PRIORITY_CONFIG[task.priority] : null;
   const hasDetails = task.description || task.tags.length > 0;
+  const hoursRemaining = getHoursRemaining(task.due_date, task.due_time);
 
   return (
     <>
@@ -177,6 +199,26 @@ export function TaskItem({ task }: TaskItemProps) {
                 </span>
               )}
             </div>
+
+            {/* Urgency indicator - hours remaining */}
+            {hoursRemaining !== null && !task.completed && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800">
+                  <svg className="h-3.5 w-3.5 text-red-600 dark:text-red-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+                    {hoursRemaining === 0 ? (
+                      "Less than 1 hour left!"
+                    ) : hoursRemaining === 1 ? (
+                      "1 hour left!"
+                    ) : (
+                      `${hoursRemaining} hours left!`
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs">
@@ -261,7 +303,7 @@ export function TaskItem({ task }: TaskItemProps) {
           </span>
 
           {/* Actions */}
-          <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex shrink-0 items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => setShowEditDialog(true)}
               className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
