@@ -26,6 +26,7 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [priority, setPriority] = useState<Priority | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -38,12 +39,15 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
         setTitle(task.title);
         setDescription(task.description || "");
         setDueDate(task.due_date || "");
+        // Convert HH:MM:SS to HH:MM for input
+        setDueTime(task.due_time ? task.due_time.slice(0, 5) : "");
         setPriority(task.priority);
         setTags(task.tags || []);
       } else {
         setTitle("");
         setDescription("");
         setDueDate("");
+        setDueTime("");
         setPriority(null);
         setTags([]);
       }
@@ -133,6 +137,8 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
       title: title.trim(),
       description: description.trim() || null,
       due_date: dueDate || null,
+      // Only include due_time if both date and time are set
+      due_time: dueDate && dueTime ? `${dueTime}:00` : null,
       priority: priority || undefined,
       tags: tags.length > 0 ? tags : undefined,
     };
@@ -201,8 +207,8 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
           </div>
         </div>
 
-        {/* Due Date & Priority Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Due Date, Time & Priority Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Due Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -211,19 +217,38 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
             <input
               type="date"
               value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              onChange={(e) => {
+                setDueDate(e.target.value);
+                // Clear time if date is cleared
+                if (!e.target.value) setDueTime("");
+              }}
               min={today}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               disabled={isPending}
             />
           </div>
 
+          {/* Due Time */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Due Time
+            </label>
+            <input
+              type="time"
+              value={dueTime}
+              onChange={(e) => setDueTime(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isPending || !dueDate}
+              title={!dueDate ? "Select a date first" : "Set due time"}
+            />
+          </div>
+
           {/* Priority */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Priority <span className="text-xs text-gray-400">(optional)</span>
+              Priority
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               {PRIORITY_OPTIONS.map((p) => {
                 const config = PRIORITY_CONFIG[p];
                 const isSelected = priority === p;
@@ -233,7 +258,7 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
                     type="button"
                     onClick={() => setPriority(priority === p ? null : p)}
                     disabled={isPending}
-                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg border-2 transition-all text-xs ${
+                    className={`flex items-center justify-center gap-1 py-2 px-2 rounded-lg border-2 transition-all text-xs ${
                       isSelected
                         ? p === "low"
                           ? "border-gray-500 bg-gray-50 dark:bg-gray-800"
@@ -245,7 +270,7 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
                         : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                     }`}
                   >
-                    <span className="text-base">{config.icon}</span>
+                    <span>{config.icon}</span>
                     <span className={`font-medium ${
                       isSelected
                         ? p === "low"

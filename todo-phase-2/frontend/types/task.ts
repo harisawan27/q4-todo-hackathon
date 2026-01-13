@@ -10,6 +10,7 @@ export interface Task {
   title: string;
   description: string | null;
   due_date: string | null;  // ISO date string (YYYY-MM-DD)
+  due_time: string | null;  // ISO time string (HH:MM:SS)
   priority: Priority | null;
   tags: string[];
   completed: boolean;
@@ -21,6 +22,7 @@ export interface TaskCreate {
   title: string;
   description?: string | null;
   due_date?: string | null;
+  due_time?: string | null;
   priority?: Priority;
   tags?: string[];
 }
@@ -29,6 +31,7 @@ export interface TaskUpdate {
   title?: string;
   description?: string | null;
   due_date?: string | null;
+  due_time?: string | null;
   priority?: Priority;
   tags?: string[];
   completed?: boolean;

@@ -31,8 +31,20 @@ function getDueDateStatus(dueDate: string | null): "overdue" | "today" | "upcomi
   return "upcoming";
 }
 
+// Format time for display (HH:MM:SS -> 2:30 PM)
+function formatDueTime(dueTime: string | null): string {
+  if (!dueTime) return "";
+
+  const [hours, minutes] = dueTime.split(":");
+  const h = parseInt(hours, 10);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+
+  return `${hour12}:${minutes} ${period}`;
+}
+
 // Format due date for display
-function formatDueDate(dueDate: string | null): string {
+function formatDueDate(dueDate: string | null, dueTime: string | null): string {
   if (!dueDate) return "";
 
   const date = new Date(dueDate);
@@ -45,18 +57,22 @@ function formatDueDate(dueDate: string | null): string {
   const due = new Date(dueDate);
   due.setHours(0, 0, 0, 0);
 
+  let dateStr: string;
   if (due.getTime() === today.getTime()) {
-    return "Today";
-  }
-  if (due.getTime() === tomorrow.getTime()) {
-    return "Tomorrow";
+    dateStr = "Today";
+  } else if (due.getTime() === tomorrow.getTime()) {
+    dateStr = "Tomorrow";
+  } else {
+    dateStr = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+    });
   }
 
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  });
+  // Append time if set
+  const timeStr = formatDueTime(dueTime);
+  return timeStr ? `${dateStr} at ${timeStr}` : dateStr;
 }
 
 export function TaskItem({ task }: TaskItemProps) {
@@ -182,7 +198,7 @@ export function TaskItem({ task }: TaskItemProps) {
                   </svg>
                   <span className="font-medium">
                     {dueDateStatus === "overdue" && !task.completed && "Overdue: "}
-                    {formatDueDate(task.due_date)}
+                    {formatDueDate(task.due_date, task.due_time)}
                   </span>
                 </span>
               )}
