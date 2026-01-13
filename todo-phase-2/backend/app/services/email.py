@@ -5,7 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
-from datetime import date
+from datetime import date, time
 
 from app.config import get_settings
 
@@ -262,6 +262,181 @@ class EmailService:
 
         ---
         This email was sent by TaskFlow
+        """
+
+        return self.send_email(to_email, subject, html_content, plain_content)
+
+    def send_deadline_reminder_urgent(
+        self,
+        to_email: str,
+        user_name: Optional[str],
+        task_title: str,
+        due_date: date,
+        due_time: Optional[time],
+        task_id: str,
+        urgency: str,  # "medium", "high", "critical"
+        hours_remaining: float,
+        reminder_level: "ReminderLevel",
+    ) -> bool:
+        """
+        Send a Duolingo-style deadline reminder email with urgency-based styling.
+
+        Urgency levels:
+        - medium: 24h, 10h before (blue/calm)
+        - high: 6h, 3h before (orange/warning)
+        - critical: 1h before, overdue (red/urgent)
+        """
+        from app.models.notification import ReminderLevel
+
+        # Urgency-based colors and messaging
+        urgency_config = {
+            "medium": {
+                "header_bg": "#3B82F6",  # Blue
+                "header_text": "Reminder",
+                "accent_color": "#3B82F6",
+                "emoji": "📅",
+            },
+            "high": {
+                "header_bg": "#F59E0B",  # Orange
+                "header_text": "Time is Running Out!",
+                "accent_color": "#F59E0B",
+                "emoji": "⚠️",
+            },
+            "critical": {
+                "header_bg": "#EF4444",  # Red
+                "header_text": "URGENT ACTION NEEDED",
+                "accent_color": "#EF4444",
+                "emoji": "🚨",
+            },
+        }
+
+        config = urgency_config.get(urgency, urgency_config["medium"])
+
+        # Format due date and time
+        due_date_str = due_date.strftime("%B %d, %Y")
+        if due_time:
+            h = due_time.hour
+            m = due_time.minute
+            period = "PM" if h >= 12 else "AM"
+            hour12 = h % 12 or 12
+            due_time_str = f" at {hour12}:{m:02d} {period}"
+        else:
+            due_time_str = ""
+
+        # Time remaining message
+        if hours_remaining <= 0:
+            time_msg = "This task is now <strong>OVERDUE</strong>!"
+            time_badge = "OVERDUE"
+            badge_color = "#EF4444"
+        elif hours_remaining < 1:
+            mins = int(hours_remaining * 60)
+            time_msg = f"Only <strong>{mins} minutes</strong> remaining!"
+            time_badge = f"{mins}m LEFT"
+            badge_color = "#EF4444"
+        elif hours_remaining < 24:
+            hrs = int(hours_remaining)
+            time_msg = f"Only <strong>{hrs} hour{'s' if hrs > 1 else ''}</strong> remaining!"
+            time_badge = f"{hrs}h LEFT"
+            badge_color = config["accent_color"]
+        else:
+            time_msg = "Due <strong>tomorrow</strong>!"
+            time_badge = "DUE TOMORROW"
+            badge_color = config["accent_color"]
+
+        # Subject line based on urgency
+        if urgency == "critical":
+            subject = f"🚨 URGENT: '{task_title}' - {time_badge}"
+        elif urgency == "high":
+            subject = f"⚠️ '{task_title}' is due soon - {time_badge}"
+        else:
+            subject = f"📅 Reminder: '{task_title}' - {time_badge}"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f3f4f6; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; }}
+                .header {{ background-color: {config['header_bg']}; color: white; padding: 30px 20px; text-align: center; }}
+                .header h1 {{ margin: 0; font-size: 24px; font-weight: 700; }}
+                .header .emoji {{ font-size: 48px; display: block; margin-bottom: 10px; }}
+                .content {{ padding: 30px 20px; }}
+                .task-card {{ background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid {config['accent_color']}; border-radius: 12px; padding: 20px; margin: 20px 0; }}
+                .task-title {{ font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 10px; }}
+                .task-meta {{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }}
+                .badge {{ display: inline-block; background-color: {badge_color}; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }}
+                .due-info {{ color: #6b7280; font-size: 14px; }}
+                .time-warning {{ background-color: #fef2f2; border-left: 4px solid {config['accent_color']}; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0; }}
+                .time-warning p {{ margin: 0; color: #991b1b; font-size: 16px; }}
+                .cta-button {{ display: inline-block; background-color: {config['accent_color']}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 20px; }}
+                .cta-button:hover {{ opacity: 0.9; }}
+                .footer {{ text-align: center; padding: 20px; background-color: #f9fafb; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; }}
+                .motivation {{ font-style: italic; color: #6b7280; margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 8px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <span class="emoji">{config['emoji']}</span>
+                    <h1>{config['header_text']}</h1>
+                </div>
+                <div class="content">
+                    <p>Hi{(' ' + user_name) if user_name else ''},</p>
+
+                    <div class="time-warning">
+                        <p>{time_msg}</p>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-title">{task_title}</div>
+                        <div class="task-meta">
+                            <span class="badge">{time_badge}</span>
+                            <span class="due-info">Due: {due_date_str}{due_time_str}</span>
+                        </div>
+                    </div>
+
+                    <p>Don't let this task slip! Take action now to stay on track.</p>
+
+                    <center>
+                        <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="cta-button">
+                            Complete Task Now →
+                        </a>
+                    </center>
+
+                    <div class="motivation">
+                        💪 You've got this! Every completed task is a step toward your goals.
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>This reminder was sent by <strong>TaskFlow</strong></p>
+                    <p>We'll keep reminding you until this task is done - just like Duolingo! 🦉</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        plain_content = f"""
+        {config['header_text']}
+
+        Hi{(' ' + user_name) if user_name else ''},
+
+        {time_msg.replace('<strong>', '').replace('</strong>', '')}
+
+        Task: {task_title}
+        Due: {due_date_str}{due_time_str}
+        Status: {time_badge}
+
+        Don't let this task slip! Take action now to stay on track.
+
+        Complete your task at: https://q4-todo-hackathon.vercel.app/dashboard
+
+        You've got this! Every completed task is a step toward your goals.
+
+        ---
+        This reminder was sent by TaskFlow
+        We'll keep reminding you until this task is done - just like Duolingo!
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
