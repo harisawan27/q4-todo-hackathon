@@ -18,6 +18,30 @@ class NotificationType(str, Enum):
     SYSTEM = "system"
 
 
+class ReminderLevel(str, Enum):
+    """
+    Duolingo-style reminder levels before deadline.
+    Each level triggers a notification/email at specific hours before deadline.
+    """
+    DAY_BEFORE = "day_before"        # 24 hours before
+    HOURS_10 = "hours_10"            # 10 hours before
+    HOURS_6 = "hours_6"              # 6 hours before
+    HOURS_3 = "hours_3"              # 3 hours before
+    HOURS_1 = "hours_1"              # 1 hour before
+    OVERDUE = "overdue"              # Past deadline
+
+
+# Reminder schedule: (level, hours_before_deadline)
+REMINDER_SCHEDULE = [
+    (ReminderLevel.DAY_BEFORE, 24),
+    (ReminderLevel.HOURS_10, 10),
+    (ReminderLevel.HOURS_6, 6),
+    (ReminderLevel.HOURS_3, 3),
+    (ReminderLevel.HOURS_1, 1),
+    (ReminderLevel.OVERDUE, 0),
+]
+
+
 class NotificationCreate(SQLModel):
     """Schema for creating a notification internally"""
     user_id: str
@@ -38,6 +62,7 @@ class Notification(SQLModel, table=True):
     message: str = Field(max_length=1000)
     type: str = Field(max_length=30)
     task_id: Optional[str] = Field(default=None, index=True)
+    reminder_level: Optional[str] = Field(default=None, max_length=20)  # Tracks which reminder level was sent
     read: bool = Field(default=False)
     email_sent: bool = Field(default=False)
     created_at: datetime = Field(
