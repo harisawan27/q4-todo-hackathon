@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/lib/sidebar-context";
 import { useEffect } from "react";
@@ -83,11 +84,7 @@ function SidebarContent() {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <Link href="/dashboard" className="flex h-16 items-center gap-2 border-b border-gray-100 dark:border-gray-700 px-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        </div>
+        <Image src="/logo.svg" alt="DoneKaro" width={32} height={32} />
         <span className="text-lg font-bold text-gray-900 dark:text-white">DoneKaro</span>
       </Link>
 

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useSidebar } from "@/lib/sidebar-context";
 import { NotificationBell } from "@/components/notification-panel";
@@ -70,11 +71,7 @@ export function Header() {
 
       {/* Mobile Logo */}
       <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        </div>
+        <Image src="/logo.svg" alt="DoneKaro" width={32} height={32} />
         <span className="text-lg font-bold text-gray-900 dark:text-white">DoneKaro</span>
       </Link>
 
