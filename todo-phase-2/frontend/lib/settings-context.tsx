@@ -40,7 +40,7 @@ const defaultPreferences: Preferences = {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-const STORAGE_KEY = "taskflow-settings";
+const STORAGE_KEY = "donekaro-settings";
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationSettings>(defaultNotifications);

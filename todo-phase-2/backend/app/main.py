@@ -1,4 +1,4 @@
-"""Phase II Multi-User Web Todo Application - FastAPI Entry Point"""
+"""DoneKaro - Multi-User Task Management API (FastAPI Entry Point)"""
 
 import logging
 from contextlib import asynccontextmanager
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title="Phase II Multi-User Todo API",
+    title="DoneKaro API",
     description="REST API for multi-user task management with JWT authentication",
     version="1.0.0",
     lifespan=lifespan,
@@ -110,4 +110,4 @@ app.include_router(notifications_router)
 @app.get("/")
 async def root() -> dict[str, str]:
     """Root endpoint - redirect to docs"""
-    return {"message": "Phase II Multi-User Todo API", "docs": "/docs"}
+    return {"message": "DoneKaro API", "docs": "/docs"}

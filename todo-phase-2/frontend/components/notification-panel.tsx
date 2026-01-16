@@ -211,7 +211,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full mt-2 w-80 sm:w-96 origin-top-right animate-fade-in rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg overflow-hidden z-50"
+      className="fixed sm:absolute right-2 sm:right-0 left-2 sm:left-auto top-16 sm:top-full sm:mt-2 w-auto sm:w-96 origin-top-right animate-fade-in rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg overflow-hidden z-50"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">

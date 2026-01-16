@@ -40,7 +40,9 @@
       "Bash(cmd /c \"F:\\\\q4-todo-hackathon\\\\todo-phase-2\\\\backend\\\\venv\\\\Scripts\\\\pip.exe install apscheduler\")",
       "Bash(npm run type-check:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(pyproject:*)",
+      "Bash(README \")"
     ]
   }
 }

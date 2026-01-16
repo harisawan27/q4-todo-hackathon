@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from_email: str = "111harisawan@gmail.com"
-    smtp_from_name: str = "Task Flow"
+    smtp_from_name: str = "DoneKaro"
     email_enabled: bool = False
 
     # Notification Settings

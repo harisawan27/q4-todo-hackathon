@@ -50,7 +50,7 @@ export default function SettingsPage() {
       // Title
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
-      doc.text("TaskFlow Export", pageWidth / 2, y, { align: "center" });
+      doc.text("DoneKaro Export", pageWidth / 2, y, { align: "center" });
       y += 15;
 
       // Export date
@@ -145,7 +145,7 @@ export default function SettingsPage() {
         );
       }
 
-      doc.save(`taskflow-export-${new Date().toISOString().split("T")[0]}.pdf`);
+      doc.save(`donekaro-export-${new Date().toISOString().split("T")[0]}.pdf`);
       toast.success("Export successful", "Your data has been downloaded as PDF");
     } catch {
       toast.error("Export failed", "Could not export your data");
@@ -261,7 +261,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Appearance</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Customize how TaskFlow looks</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Customize how DoneKaro looks</p>
             </div>
           </div>
         </CardHeader>

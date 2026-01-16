@@ -1,7 +1,7 @@
 [project]
-name = "todo-phase-2-backend"
+name = "donekaro-backend"
 version = "0.1.0"
-description = "Phase II Multi-User Web Todo Application - Backend"
+description = "DoneKaro - Multi-User Task Management Backend"
 requires-python = ">=3.13"
 
 [tool.ruff]

@@ -4,12 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskFlow - Organize Your Work, Simplify Your Life",
-    template: "%s | TaskFlow",
+    default: "DoneKaro - Organize Your Work, Simplify Your Life",
+    template: "%s | DoneKaro",
   },
-  description: "TaskFlow is a modern task management SaaS that helps you organize your work, track progress, and boost productivity. Free to get started.",
+  description: "DoneKaro is a modern task management SaaS that helps you organize your work, track progress, and boost productivity. Free to get started.",
   keywords: ["task management", "productivity", "todo app", "project management", "SaaS", "collaboration"],
-  authors: [{ name: "TaskFlow Team" }],
+  authors: [{ name: "DoneKaro Team" }],
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "TaskFlow - Modern Task Management",
-    description: "Organize your work, simplify your life with TaskFlow",
+    title: "DoneKaro - Modern Task Management",
+    description: "Organize your work, simplify your life with DoneKaro",
     type: "website",
   },
 };

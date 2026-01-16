@@ -14,7 +14,7 @@ export default function AuthLayout({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-white">TaskFlow</span>
+            <span className="text-2xl font-bold text-white">DoneKaro</span>
           </div>
         </div>
 
@@ -24,7 +24,7 @@ export default function AuthLayout({
             Simplify your life.
           </h1>
           <p className="text-lg text-blue-100 max-w-md">
-            Join thousands of users who trust TaskFlow to manage their tasks efficiently and boost productivity.
+            Join thousands of users who trust DoneKaro to manage their tasks efficiently and boost productivity.
           </p>
 
           {/* Features */}
@@ -57,7 +57,7 @@ export default function AuthLayout({
         </div>
 
         <div className="flex items-center gap-4 text-sm text-white/60">
-          <span>© 2026 TaskFlow</span>
+          <span>© 2026 DoneKaro</span>
           <span>•</span>
           <a href="#" className="hover:text-white transition-colors">Privacy</a>
           <span>•</span>
@@ -75,7 +75,7 @@ export default function AuthLayout({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-gray-900">TaskFlow</span>
+            <span className="text-xl font-bold text-gray-900">DoneKaro</span>
           </div>
 
           <div className="rounded-2xl bg-white p-8 shadow-xl shadow-gray-200/50 border border-gray-100">
@@ -84,7 +84,7 @@ export default function AuthLayout({
 
           {/* Mobile footer */}
           <p className="mt-8 text-center text-xs text-gray-400 lg:hidden">
-            © 2026 TaskFlow. All rights reserved.
+            © 2026 DoneKaro. All rights reserved.
           </p>
         </div>
       </div>
