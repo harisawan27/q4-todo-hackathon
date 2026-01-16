@@ -10,6 +10,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   trend?: { value: number; isUp: boolean };
   color: "blue" | "green" | "yellow" | "purple";
+  pulsing?: boolean;
 }
 
 const colorClasses = {
@@ -35,11 +36,15 @@ const colorClasses = {
   },
 };
 
-function StatCard({ title, value, icon, trend, color }: StatCardProps) {
+function StatCard({ title, value, icon, trend, color, pulsing }: StatCardProps) {
   const colors = colorClasses[color];
 
   return (
-    <div className={`rounded-xl ${colors.bg} p-2 sm:p-5 transition-all hover:shadow-md`}>
+    <div
+      className={`rounded-xl ${pulsing ? "" : colors.bg} p-2 sm:p-5 transition-all hover:shadow-md ${
+        pulsing ? "animate-attention-pulse" : ""
+      }`}
+    >
       {/* Mobile layout: compact vertical stack */}
       <div className="flex flex-col items-center text-center sm:block sm:text-left">
         <div className={`rounded-lg ${colors.icon} p-1.5 sm:p-2.5 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}>{icon}</div>
@@ -120,6 +125,7 @@ export function StatsCards() {
         title="In Progress"
         value={pendingTasks}
         color="yellow"
+        pulsing={pendingTasks > 0}
         icon={
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
