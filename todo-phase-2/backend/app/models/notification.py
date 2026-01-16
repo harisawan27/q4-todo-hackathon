@@ -22,9 +22,10 @@ class ReminderLevel(str, Enum):
     """
     Duolingo-style reminder levels before deadline.
     Each level triggers a notification/email at specific hours before deadline.
+    Reminders continue until task is marked complete.
     """
-    DAY_BEFORE = "day_before"        # 24 hours before
-    HOURS_10 = "hours_10"            # 10 hours before
+    DAY_BEFORE = "day_before"        # 24 hours before (1 day)
+    HOURS_12 = "hours_12"            # 12 hours before
     HOURS_6 = "hours_6"              # 6 hours before
     HOURS_3 = "hours_3"              # 3 hours before
     HOURS_1 = "hours_1"              # 1 hour before
@@ -32,9 +33,11 @@ class ReminderLevel(str, Enum):
 
 
 # Reminder schedule: (level, hours_before_deadline)
+# Sent at: 1 day, 12 hours, 6 hours, 3 hours, 1 hour before deadline
+# Stops automatically when task is marked as completed
 REMINDER_SCHEDULE = [
     (ReminderLevel.DAY_BEFORE, 24),
-    (ReminderLevel.HOURS_10, 10),
+    (ReminderLevel.HOURS_12, 12),
     (ReminderLevel.HOURS_6, 6),
     (ReminderLevel.HOURS_3, 3),
     (ReminderLevel.HOURS_1, 1),

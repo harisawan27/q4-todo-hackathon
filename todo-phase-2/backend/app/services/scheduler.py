@@ -24,42 +24,55 @@ logger = logging.getLogger(__name__)
 
 
 # Urgency messages for each reminder level (Duolingo-style)
+# These messages are motivational and progressively urgent
 REMINDER_MESSAGES = {
     ReminderLevel.DAY_BEFORE: {
-        "title": "Deadline Tomorrow!",
-        "message": "Your task '{task}' is due in 24 hours. Don't forget to complete it!",
-        "email_subject": "Reminder: '{task}' is due tomorrow!",
+        "title": "1 Day Left!",
+        "message": "Your task '{task}' is due tomorrow. Stay on track!",
+        "email_subject": "Reminder: '{task}' is due in 24 hours!",
         "urgency": "medium",
+        "emoji": "📅",
+        "motivational": "Plan ahead to avoid last-minute rush!",
     },
-    ReminderLevel.HOURS_10: {
-        "title": "10 Hours Left!",
-        "message": "Only 10 hours left to complete '{task}'. You've got this!",
-        "email_subject": "10 hours left: '{task}' deadline approaching",
+    ReminderLevel.HOURS_12: {
+        "title": "12 Hours Left!",
+        "message": "Half a day left to complete '{task}'. You've got this!",
+        "email_subject": "12 hours left: '{task}' deadline approaching",
         "urgency": "medium",
+        "emoji": "⏰",
+        "motivational": "Great time to knock this out!",
     },
     ReminderLevel.HOURS_6: {
         "title": "6 Hours Remaining!",
-        "message": "'{task}' is due in 6 hours. Time to focus!",
+        "message": "'{task}' is due in 6 hours. Time to focus and finish!",
         "email_subject": "6 hours remaining: Don't forget '{task}'",
         "urgency": "high",
+        "emoji": "⚠️",
+        "motivational": "You're almost there - push through!",
     },
     ReminderLevel.HOURS_3: {
         "title": "3 Hours to Go!",
         "message": "Hurry! '{task}' is due in just 3 hours!",
         "email_subject": "Urgent: Only 3 hours left for '{task}'",
         "urgency": "high",
+        "emoji": "🔥",
+        "motivational": "Crunch time - you can do this!",
     },
     ReminderLevel.HOURS_1: {
         "title": "Final Hour!",
         "message": "Last chance! '{task}' is due in 1 hour. Complete it now!",
         "email_subject": "FINAL HOUR: '{task}' deadline imminent!",
         "urgency": "critical",
+        "emoji": "🚨",
+        "motivational": "One hour left - finish strong!",
     },
     ReminderLevel.OVERDUE: {
         "title": "Deadline Passed!",
         "message": "'{task}' is now overdue. Complete it as soon as possible!",
         "email_subject": "OVERDUE: '{task}' deadline has passed",
         "urgency": "critical",
+        "emoji": "❌",
+        "motivational": "Better late than never - get it done!",
     },
 }
 
@@ -83,12 +96,13 @@ class SchedulerService:
 
         self.scheduler = BackgroundScheduler()
 
-        # Check deadlines every 15 minutes for more precise reminders
+        # Check deadlines every 5 minutes for near real-time reminders
+        # This ensures users get timely notifications at each reminder threshold
         self.scheduler.add_job(
             self.check_upcoming_deadlines,
-            trigger=IntervalTrigger(minutes=15),
+            trigger=IntervalTrigger(minutes=5),
             id="check_deadlines",
-            name="Check upcoming deadlines",
+            name="Check upcoming deadlines (Duolingo-style)",
             replace_existing=True,
         )
 
@@ -101,7 +115,7 @@ class SchedulerService:
         )
 
         self.scheduler.start()
-        logger.info("Background scheduler started (checking every 15 minutes)")
+        logger.info("Duolingo-style reminder scheduler started (checking every 5 minutes)")
 
     def stop(self):
         """Stop the background scheduler"""

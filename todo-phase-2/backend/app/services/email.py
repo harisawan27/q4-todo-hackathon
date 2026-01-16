@@ -120,7 +120,7 @@ class EmailService:
                     <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="btn">View Task</a>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by TaskFlow</p>
+                    <p>This email was sent by DoneKaro</p>
                     <p>You're receiving this because you have email notifications enabled.</p>
                 </div>
             </div>
@@ -143,7 +143,7 @@ class EmailService:
         View your tasks at: https://q4-todo-hackathon.vercel.app/dashboard
 
         ---
-        This email was sent by TaskFlow
+        This email was sent by DoneKaro
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
@@ -184,7 +184,7 @@ class EmailService:
                     </div>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by TaskFlow</p>
+                    <p>This email was sent by DoneKaro</p>
                 </div>
             </div>
         </body>
@@ -201,7 +201,7 @@ class EmailService:
         Task: {task_title}
 
         ---
-        This email was sent by TaskFlow
+        This email was sent by DoneKaro
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
@@ -242,7 +242,7 @@ class EmailService:
                     <p style="text-align: center;">Keep up the great work!</p>
                 </div>
                 <div class="footer">
-                    <p>This email was sent by TaskFlow</p>
+                    <p>This email was sent by DoneKaro</p>
                 </div>
             </div>
         </body>
@@ -261,7 +261,7 @@ class EmailService:
         Keep up the great work!
 
         ---
-        This email was sent by TaskFlow
+        This email was sent by DoneKaro
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
@@ -281,32 +281,40 @@ class EmailService:
         """
         Send a Duolingo-style deadline reminder email with urgency-based styling.
 
-        Urgency levels:
-        - medium: 24h, 10h before (blue/calm)
-        - high: 6h, 3h before (orange/warning)
-        - critical: 1h before, overdue (red/urgent)
+        Reminder Schedule (Duolingo-style persistence):
+        - 24 hours (1 day) before deadline - medium urgency
+        - 12 hours before deadline - medium urgency
+        - 6 hours before deadline - high urgency
+        - 3 hours before deadline - high urgency
+        - 1 hour before deadline - critical urgency
+        - Overdue - critical urgency
+
+        Reminders STOP when task is marked as completed.
         """
         from app.models.notification import ReminderLevel
 
-        # Urgency-based colors and messaging
+        # Urgency-based colors and messaging (Duolingo-inspired)
         urgency_config = {
             "medium": {
-                "header_bg": "#3B82F6",  # Blue
-                "header_text": "Reminder",
-                "accent_color": "#3B82F6",
-                "emoji": "📅",
+                "header_bg": "#58CC02",  # Duolingo green
+                "header_text": "Friendly Reminder",
+                "accent_color": "#58CC02",
+                "emoji": "🦉",
+                "gradient": "linear-gradient(135deg, #58CC02 0%, #46a302 100%)",
             },
             "high": {
-                "header_bg": "#F59E0B",  # Orange
+                "header_bg": "#FF9600",  # Duolingo orange
                 "header_text": "Time is Running Out!",
-                "accent_color": "#F59E0B",
-                "emoji": "⚠️",
+                "accent_color": "#FF9600",
+                "emoji": "⏰",
+                "gradient": "linear-gradient(135deg, #FF9600 0%, #e68600 100%)",
             },
             "critical": {
-                "header_bg": "#EF4444",  # Red
-                "header_text": "URGENT ACTION NEEDED",
-                "accent_color": "#EF4444",
-                "emoji": "🚨",
+                "header_bg": "#FF4B4B",  # Duolingo red
+                "header_text": "Don't Break Your Streak!",
+                "accent_color": "#FF4B4B",
+                "emoji": "🔥",
+                "gradient": "linear-gradient(135deg, #FF4B4B 0%, #e63939 100%)",
             },
         }
 
@@ -323,94 +331,123 @@ class EmailService:
         else:
             due_time_str = ""
 
-        # Time remaining message
+        # Time remaining message with Duolingo-style urgency
         if hours_remaining <= 0:
-            time_msg = "This task is now <strong>OVERDUE</strong>!"
+            time_msg = "This task is now <strong style='color: #FF4B4B;'>OVERDUE</strong>!"
             time_badge = "OVERDUE"
-            badge_color = "#EF4444"
+            badge_color = "#FF4B4B"
+            motivational_msg = "It's not too late! Complete it now and get back on track."
         elif hours_remaining < 1:
             mins = int(hours_remaining * 60)
-            time_msg = f"Only <strong>{mins} minutes</strong> remaining!"
+            time_msg = f"Only <strong style='color: #FF4B4B;'>{mins} minutes</strong> left!"
             time_badge = f"{mins}m LEFT"
-            badge_color = "#EF4444"
-        elif hours_remaining < 24:
+            badge_color = "#FF4B4B"
+            motivational_msg = "Final push! You're so close to finishing."
+        elif hours_remaining <= 3:
             hrs = int(hours_remaining)
-            time_msg = f"Only <strong>{hrs} hour{'s' if hrs > 1 else ''}</strong> remaining!"
+            time_msg = f"<strong style='color: #FF4B4B;'>{hrs} hour{'s' if hrs > 1 else ''}</strong> until deadline!"
+            time_badge = f"{hrs}h LEFT"
+            badge_color = "#FF4B4B"
+            motivational_msg = "Crunch time! Focus and finish strong."
+        elif hours_remaining <= 6:
+            hrs = int(hours_remaining)
+            time_msg = f"<strong style='color: #FF9600;'>{hrs} hours</strong> remaining!"
+            time_badge = f"{hrs}h LEFT"
+            badge_color = "#FF9600"
+            motivational_msg = "You've got this! Start now and finish with time to spare."
+        elif hours_remaining <= 12:
+            hrs = int(hours_remaining)
+            time_msg = f"<strong style='color: #58CC02;'>{hrs} hours</strong> until your deadline."
             time_badge = f"{hrs}h LEFT"
             badge_color = config["accent_color"]
+            motivational_msg = "Perfect time to knock this out! Half a day to go."
         else:
-            time_msg = "Due <strong>tomorrow</strong>!"
+            time_msg = "Due <strong style='color: #58CC02;'>tomorrow</strong>!"
             time_badge = "DUE TOMORROW"
             badge_color = config["accent_color"]
+            motivational_msg = "Plan ahead today for a stress-free tomorrow!"
 
-        # Subject line based on urgency
+        # Subject line based on urgency (Duolingo-style)
         if urgency == "critical":
-            subject = f"🚨 URGENT: '{task_title}' - {time_badge}"
+            subject = f"🔥 '{task_title}' needs you NOW - {time_badge}"
         elif urgency == "high":
-            subject = f"⚠️ '{task_title}' is due soon - {time_badge}"
+            subject = f"⏰ Time check: '{task_title}' - {time_badge}"
         else:
-            subject = f"📅 Reminder: '{task_title}' - {time_badge}"
+            subject = f"🦉 Hey! Don't forget '{task_title}' - {time_badge}"
 
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f3f4f6; }}
-                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; }}
-                .header {{ background-color: {config['header_bg']}; color: white; padding: 30px 20px; text-align: center; }}
-                .header h1 {{ margin: 0; font-size: 24px; font-weight: 700; }}
-                .header .emoji {{ font-size: 48px; display: block; margin-bottom: 10px; }}
-                .content {{ padding: 30px 20px; }}
-                .task-card {{ background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid {config['accent_color']}; border-radius: 12px; padding: 20px; margin: 20px 0; }}
-                .task-title {{ font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 10px; }}
-                .task-meta {{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }}
-                .badge {{ display: inline-block; background-color: {badge_color}; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }}
-                .due-info {{ color: #6b7280; font-size: 14px; }}
-                .time-warning {{ background-color: #fef2f2; border-left: 4px solid {config['accent_color']}; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0; }}
-                .time-warning p {{ margin: 0; color: #991b1b; font-size: 16px; }}
-                .cta-button {{ display: inline-block; background-color: {config['accent_color']}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 20px; }}
-                .cta-button:hover {{ opacity: 0.9; }}
-                .footer {{ text-align: center; padding: 20px; background-color: #f9fafb; color: #6b7280; font-size: 12px; border-top: 1px solid #e5e7eb; }}
-                .motivation {{ font-style: italic; color: #6b7280; margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 8px; }}
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; line-height: 1.6; color: #3c3c3c; margin: 0; padding: 0; background-color: #f7f7f7; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }}
+                .header {{ background: {config['gradient']}; color: white; padding: 40px 20px; text-align: center; }}
+                .header h1 {{ margin: 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }}
+                .header .mascot {{ font-size: 64px; display: block; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }}
+                .content {{ padding: 32px 24px; }}
+                .greeting {{ font-size: 18px; color: #4b4b4b; margin-bottom: 20px; }}
+                .task-card {{ background: linear-gradient(145deg, #ffffff 0%, #f8f8f8 100%); border: 3px solid {config['accent_color']}; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }}
+                .task-title {{ font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; }}
+                .task-meta {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }}
+                .badge {{ display: inline-block; background: {badge_color}; color: white; padding: 8px 16px; border-radius: 25px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }}
+                .due-info {{ color: #777; font-size: 14px; font-weight: 500; }}
+                .time-warning {{ background: linear-gradient(135deg, #fff8f0 0%, #fff0e0 100%); border-left: 5px solid {config['accent_color']}; padding: 20px; margin: 24px 0; border-radius: 0 12px 12px 0; }}
+                .time-warning p {{ margin: 0; color: #333; font-size: 18px; font-weight: 600; }}
+                .cta-section {{ text-align: center; margin: 32px 0; }}
+                .cta-button {{ display: inline-block; background: {config['gradient']}; color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }}
+                .cta-button:hover {{ transform: translateY(-2px); }}
+                .motivation-box {{ background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 20px; margin-top: 24px; text-align: center; }}
+                .motivation-box p {{ margin: 0; color: #0369a1; font-size: 16px; font-weight: 500; }}
+                .motivation-box .icon {{ font-size: 28px; margin-bottom: 8px; display: block; }}
+                .footer {{ text-align: center; padding: 24px; background-color: #f9fafb; color: #6b7280; font-size: 13px; border-top: 1px solid #e5e7eb; }}
+                .footer strong {{ color: #58CC02; }}
+                .reminder-note {{ background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 12px; color: #92400e; }}
             </style>
         </head>
         <body>
-            <div class="container">
-                <div class="header">
-                    <span class="emoji">{config['emoji']}</span>
-                    <h1>{config['header_text']}</h1>
-                </div>
-                <div class="content">
-                    <p>Hi{(' ' + user_name) if user_name else ''},</p>
-
-                    <div class="time-warning">
-                        <p>{time_msg}</p>
+            <div style="padding: 20px; background-color: #f7f7f7;">
+                <div class="container">
+                    <div class="header">
+                        <span class="mascot">{config['emoji']}</span>
+                        <h1>{config['header_text']}</h1>
                     </div>
+                    <div class="content">
+                        <p class="greeting">Hi{(' ' + user_name) if user_name else ' there'}!</p>
 
-                    <div class="task-card">
-                        <div class="task-title">{task_title}</div>
-                        <div class="task-meta">
-                            <span class="badge">{time_badge}</span>
-                            <span class="due-info">Due: {due_date_str}{due_time_str}</span>
+                        <div class="time-warning">
+                            <p>{time_msg}</p>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-title">{task_title}</div>
+                            <div class="task-meta">
+                                <span class="badge">{time_badge}</span>
+                                <span class="due-info">Due: {due_date_str}{due_time_str}</span>
+                            </div>
+                        </div>
+
+                        <div class="cta-section">
+                            <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="cta-button">
+                                Complete Task Now
+                            </a>
+                        </div>
+
+                        <div class="motivation-box">
+                            <span class="icon">💪</span>
+                            <p>{motivational_msg}</p>
+                        </div>
+
+                        <div class="reminder-note">
+                            <strong>Note:</strong> We'll keep sending reminders until you mark this task as complete - just like Duolingo does! Complete it to stop the reminders.
                         </div>
                     </div>
-
-                    <p>Don't let this task slip! Take action now to stay on track.</p>
-
-                    <center>
-                        <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="cta-button">
-                            Complete Task Now →
-                        </a>
-                    </center>
-
-                    <div class="motivation">
-                        💪 You've got this! Every completed task is a step toward your goals.
+                    <div class="footer">
+                        <p>Sent with 💚 by <strong>DoneKaro</strong></p>
+                        <p style="margin-top: 8px;">Your productivity companion that won't let you forget!</p>
                     </div>
-                </div>
-                <div class="footer">
-                    <p>This reminder was sent by <strong>TaskFlow</strong></p>
-                    <p>We'll keep reminding you until this task is done - just like Duolingo! 🦉</p>
                 </div>
             </div>
         </body>
@@ -418,25 +455,30 @@ class EmailService:
         """
 
         plain_content = f"""
-        {config['header_text']}
+{config['header_text'].upper()}
 
-        Hi{(' ' + user_name) if user_name else ''},
+Hi{(' ' + user_name) if user_name else ' there'}!
 
-        {time_msg.replace('<strong>', '').replace('</strong>', '')}
+{time_msg.replace('<strong>', '').replace('</strong>', '').replace("<strong style='color: #FF4B4B;'>", '').replace("<strong style='color: #FF9600;'>", '').replace("<strong style='color: #58CC02;'>", '')}
 
-        Task: {task_title}
-        Due: {due_date_str}{due_time_str}
-        Status: {time_badge}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        Don't let this task slip! Take action now to stay on track.
+TASK: {task_title}
+DUE: {due_date_str}{due_time_str}
+STATUS: {time_badge}
 
-        Complete your task at: https://q4-todo-hackathon.vercel.app/dashboard
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        You've got this! Every completed task is a step toward your goals.
+{motivational_msg}
 
-        ---
-        This reminder was sent by TaskFlow
-        We'll keep reminding you until this task is done - just like Duolingo!
+Complete your task at: https://q4-todo-hackathon.vercel.app/dashboard
+
+---
+
+Note: We'll keep sending reminders until you mark this task as complete - just like Duolingo! Complete it to stop the reminders.
+
+Sent with love by DoneKaro
+Your productivity companion that won't let you forget!
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)

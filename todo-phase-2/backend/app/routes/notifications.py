@@ -1,9 +1,10 @@
-"""Notification CRUD endpoints"""
+"""Notification CRUD endpoints with Duolingo-style deadline reminders"""
 
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlmodel import Session, select, func
 
 from app.auth.jwt_bearer import CurrentUser, get_current_user
@@ -13,6 +14,9 @@ from app.models.notification import (
     NotificationRead,
     NotificationUpdate,
 )
+from app.services.scheduler import scheduler_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
@@ -166,3 +170,66 @@ async def clear_all_notifications(
 
     session.commit()
     return {"deleted": count}
+
+
+@router.post("/check-deadlines", status_code=status.HTTP_200_OK)
+async def check_deadlines_now(
+    background_tasks: BackgroundTasks,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """
+    Trigger an immediate deadline check for all users.
+
+    This endpoint allows real-time triggering of the deadline reminder system.
+    The check runs in the background and will send notifications/emails for
+    any tasks that have crossed reminder thresholds.
+
+    Duolingo-style reminders are sent at:
+    - 1 day (24 hours) before deadline
+    - 12 hours before deadline
+    - 6 hours before deadline
+    - 3 hours before deadline
+    - 1 hour before deadline
+    - When overdue
+
+    Reminders stop automatically when a task is marked as completed.
+    """
+    logger.info(f"Manual deadline check triggered by user {current_user.user_id}")
+
+    # Run the check in background to not block the response
+    background_tasks.add_task(scheduler_service.check_upcoming_deadlines)
+
+    return {
+        "status": "triggered",
+        "message": "Deadline check initiated. New notifications will appear shortly.",
+        "reminder_intervals": ["24h", "12h", "6h", "3h", "1h", "overdue"]
+    }
+
+
+@router.get("/reminder-schedule")
+async def get_reminder_schedule(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> dict:
+    """
+    Get the Duolingo-style reminder schedule configuration.
+
+    Returns the intervals at which deadline reminders are sent.
+    This helps the frontend display reminder timing information to users.
+    """
+    return {
+        "schedule": [
+            {"level": "day_before", "hours_before": 24, "label": "1 day before", "urgency": "medium"},
+            {"level": "hours_12", "hours_before": 12, "label": "12 hours before", "urgency": "medium"},
+            {"level": "hours_6", "hours_before": 6, "label": "6 hours before", "urgency": "high"},
+            {"level": "hours_3", "hours_before": 3, "label": "3 hours before", "urgency": "high"},
+            {"level": "hours_1", "hours_before": 1, "label": "1 hour before", "urgency": "critical"},
+            {"level": "overdue", "hours_before": 0, "label": "Overdue", "urgency": "critical"},
+        ],
+        "behavior": {
+            "stops_on_completion": True,
+            "check_interval_minutes": 5,
+            "email_enabled": True,
+            "in_app_notifications": True,
+        },
+        "message": "Reminders are sent at each interval until the task is marked complete - just like Duolingo!"
+    }
