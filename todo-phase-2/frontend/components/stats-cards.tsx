@@ -39,12 +39,14 @@ function StatCard({ title, value, icon, trend, color }: StatCardProps) {
   const colors = colorClasses[color];
 
   return (
-    <div className={`rounded-xl ${colors.bg} p-5 transition-all hover:shadow-md`}>
-      <div className="flex items-center justify-between">
-        <div className={`rounded-lg ${colors.icon} p-2.5`}>{icon}</div>
+    <div className={`rounded-xl ${colors.bg} p-2 sm:p-5 transition-all hover:shadow-md`}>
+      {/* Mobile layout: compact vertical stack */}
+      <div className="flex flex-col items-center text-center sm:block sm:text-left">
+        <div className={`rounded-lg ${colors.icon} p-1.5 sm:p-2.5 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}>{icon}</div>
+        {/* Trend badge - hidden on mobile for space */}
         {trend && (
           <span
-            className={`flex items-center gap-1 text-xs font-medium ${
+            className={`hidden sm:flex items-center gap-1 text-xs font-medium absolute top-2 right-2 ${
               trend.isUp ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
             }`}
           >
@@ -63,9 +65,9 @@ function StatCard({ title, value, icon, trend, color }: StatCardProps) {
           </span>
         )}
       </div>
-      <div className="mt-4">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
-        <p className={`mt-1 text-2xl font-bold ${colors.value}`}>{value}</p>
+      <div className="mt-1 sm:mt-4 text-center sm:text-left">
+        <h3 className="text-[10px] sm:text-sm font-medium text-gray-600 dark:text-gray-400 leading-tight">{title}</h3>
+        <p className={`mt-0.5 sm:mt-1 text-base sm:text-2xl font-bold ${colors.value}`}>{value}</p>
       </div>
     </div>
   );
@@ -79,9 +81,9 @@ export function StatsCards() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2 sm:gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-28 rounded-xl skeleton" />
+          <div key={i} className="h-20 sm:h-28 rounded-xl skeleton" />
         ))}
       </div>
     );
@@ -93,7 +95,7 @@ export function StatsCards() {
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-4 gap-2 sm:gap-4">
       <StatCard
         title="Total Tasks"
         value={totalTasks}
