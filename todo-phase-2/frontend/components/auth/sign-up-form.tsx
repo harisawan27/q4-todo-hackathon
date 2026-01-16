@@ -205,26 +205,6 @@ export function SignUpForm() {
         </div>
       </div>
 
-      <div className="flex items-start gap-2">
-        <input
-          id="terms"
-          name="terms"
-          type="checkbox"
-          required
-          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        />
-        <label htmlFor="terms" className="text-sm text-gray-600">
-          I agree to the{" "}
-          <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-            Privacy Policy
-          </a>
-        </label>
-      </div>
-
       <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
         Create your account
       </Button>

@@ -56,12 +56,8 @@ export default function AuthLayout({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-white/60">
+        <div className="text-sm text-white/60">
           <span>© 2026 DoneKaro</span>
-          <span>•</span>
-          <a href="#" className="hover:text-white transition-colors">Privacy</a>
-          <span>•</span>
-          <a href="#" className="hover:text-white transition-colors">Terms</a>
         </div>
       </div>
 

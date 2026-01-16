@@ -122,7 +122,7 @@ export function SignInForm() {
       </div>
 
       <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-        Sign in to your account
+        Sign in
       </Button>
     </form>
   );
