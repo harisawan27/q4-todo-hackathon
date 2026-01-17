@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -19,50 +19,85 @@ export function GoogleSignInButton({ mode = "signin" }: GoogleSignInButtonProps)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [isNative, setIsNative] = useState(false);
+  const [googleAuthReady, setGoogleAuthReady] = useState(false);
+  const googleAuthRef = useRef<any>(null);
   const router = useRouter();
 
   useEffect(() => {
-    setIsNative(isNativeApp());
+    const native = isNativeApp();
+    setIsNative(native);
+
+    // Initialize Google Auth early if in native app
+    if (native) {
+      initializeGoogleAuth();
+    }
   }, []);
 
-  const handleNativeGoogleSignIn = async () => {
+  const initializeGoogleAuth = async () => {
     try {
-      // Dynamically import Capacitor Google Auth
       const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+      googleAuthRef.current = GoogleAuth;
 
-      // Initialize GoogleAuth
       await GoogleAuth.initialize({
         clientId: "39470081482-sno1ch3sj5qiueb0pk2t8nghtcqf5qde.apps.googleusercontent.com",
         scopes: ["profile", "email"],
         grantOfflineAccess: true,
       });
 
+      setGoogleAuthReady(true);
+      console.log("GoogleAuth initialized successfully");
+    } catch (err) {
+      console.error("Failed to initialize GoogleAuth:", err);
+    }
+  };
+
+  const handleNativeGoogleSignIn = async () => {
+    try {
+      if (!googleAuthRef.current) {
+        throw new Error("Google Auth not initialized");
+      }
+
+      console.log("Starting native Google Sign-In...");
+
       // Trigger native Google Sign-In
-      const result = await GoogleAuth.signIn();
+      const result = await googleAuthRef.current.signIn();
+      console.log("Google Sign-In result:", JSON.stringify(result));
 
-      if (result.authentication?.idToken) {
-        // Send ID token to our backend
-        const response = await fetch("/api/auth/native-google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            idToken: result.authentication.idToken,
-          }),
-        });
+      const idToken = result.authentication?.idToken;
 
-        if (response.ok) {
-          // Redirect to dashboard on success
-          router.push("/dashboard");
-          router.refresh();
-        } else {
-          const data = await response.json();
-          throw new Error(data.error || "Authentication failed");
+      if (!idToken) {
+        // Try alternative token location
+        const serverAuthCode = result.serverAuthCode;
+        if (serverAuthCode) {
+          console.log("Got serverAuthCode, but need idToken");
         }
-      } else {
         throw new Error("No ID token received from Google");
+      }
+
+      console.log("Got ID token, sending to backend...");
+
+      // Send ID token to our backend
+      const response = await fetch("https://q4-todo-hackathon.vercel.app/api/auth/native-google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ idToken }),
+      });
+
+      console.log("Backend response status:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Auth success:", data);
+
+        // Redirect to dashboard on success
+        window.location.href = "https://q4-todo-hackathon.vercel.app/dashboard";
+      } else {
+        const data = await response.json();
+        console.error("Backend error:", data);
+        throw new Error(data.error || "Authentication failed");
       }
     } catch (err: any) {
       console.error("Native Google Sign-In error:", err);
@@ -86,7 +121,8 @@ export function GoogleSignInButton({ mode = "signin" }: GoogleSignInButtonProps)
         });
       }
     } catch (err: any) {
-      setError(err.message || "Failed to sign in with Google. Please try again.");
+      const message = err.message || "Failed to sign in with Google. Please try again.";
+      setError(message);
       setIsLoading(false);
     }
   };
@@ -108,6 +144,7 @@ export function GoogleSignInButton({ mode = "signin" }: GoogleSignInButtonProps)
         size="lg"
         onClick={handleGoogleSignIn}
         isLoading={isLoading}
+        disabled={isNative && !googleAuthReady}
       >
         {!isLoading && (
           <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
