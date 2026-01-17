@@ -3,6 +3,10 @@ import { jwt } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { Pool } from "@neondatabase/serverless";
 
+// Google OAuth configuration
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
 // Get auth URL from environment
 const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 
@@ -27,6 +31,18 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+
+  // Google OAuth - only enable if credentials are configured
+  ...(googleClientId && googleClientSecret
+    ? {
+        socialProviders: {
+          google: {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          },
+        },
+      }
+    : {}),
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day

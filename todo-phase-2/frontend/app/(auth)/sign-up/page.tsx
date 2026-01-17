@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignUpForm } from "@/components/auth/sign-up-form";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 export default function SignUpPage() {
   return (
@@ -16,6 +17,20 @@ export default function SignUpPage() {
           </Link>
         </p>
       </div>
+
+      <div className="mt-6">
+        <GoogleSignInButton mode="signup" />
+      </div>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-4 text-gray-500">or continue with email</span>
+        </div>
+      </div>
+
       <SignUpForm />
     </>
   );
