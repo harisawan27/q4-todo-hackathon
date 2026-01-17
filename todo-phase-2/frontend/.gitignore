@@ -25,3 +25,12 @@ coverage/
 
 # Temporary
 *.log
+
+# Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.apk
+*.aab
+*.keystore

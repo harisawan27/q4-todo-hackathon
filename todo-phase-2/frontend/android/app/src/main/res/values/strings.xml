@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DoneKaro</string>
+    <string name="title_activity_main">DoneKaro</string>
+    <string name="package_name">com.donekaro.app</string>
+    <string name="custom_url_scheme">com.donekaro.app</string>
+    <string name="server_client_id">39470081482-sno1ch3sj5qiueb0pk2t8nghtcqf5qde.apps.googleusercontent.com</string>
+</resources>

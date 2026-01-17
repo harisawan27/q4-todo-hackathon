@@ -1,28 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface GoogleSignInButtonProps {
   mode?: "signin" | "signup";
 }
 
+// Check if running in Capacitor native app
+function isNativeApp(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!(window as any).Capacitor?.isNativePlatform?.();
+}
+
 export function GoogleSignInButton({ mode = "signin" }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isNative, setIsNative] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsNative(isNativeApp());
+  }, []);
+
+  const handleNativeGoogleSignIn = async () => {
+    try {
+      // Dynamically import Capacitor Google Auth
+      const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+
+      // Initialize GoogleAuth
+      await GoogleAuth.initialize({
+        clientId: "39470081482-sno1ch3sj5qiueb0pk2t8nghtcqf5qde.apps.googleusercontent.com",
+        scopes: ["profile", "email"],
+        grantOfflineAccess: true,
+      });
+
+      // Trigger native Google Sign-In
+      const result = await GoogleAuth.signIn();
+
+      if (result.authentication?.idToken) {
+        // Send ID token to our backend
+        const response = await fetch("/api/auth/native-google", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            idToken: result.authentication.idToken,
+          }),
+        });
+
+        if (response.ok) {
+          // Redirect to dashboard on success
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          const data = await response.json();
+          throw new Error(data.error || "Authentication failed");
+        }
+      } else {
+        throw new Error("No ID token received from Google");
+      }
+    } catch (err: any) {
+      console.error("Native Google Sign-In error:", err);
+      throw err;
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setError("");
     setIsLoading(true);
 
     try {
-      await signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
-    } catch {
-      setError("Failed to sign in with Google. Please try again.");
+      if (isNative) {
+        // Use native Google Sign-In in the app
+        await handleNativeGoogleSignIn();
+      } else {
+        // Use standard web OAuth
+        await signIn.social({
+          provider: "google",
+          callbackURL: "/dashboard",
+        });
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in with Google. Please try again.");
       setIsLoading(false);
     }
   };
