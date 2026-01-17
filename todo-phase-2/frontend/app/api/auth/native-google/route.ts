@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +24,19 @@ export async function POST(request: NextRequest) {
       headers: request.headers,
     });
 
-    return result;
+    // Convert the result to a proper NextResponse
+    if (result && typeof result === 'object') {
+      if ('redirect' in result && result.redirect) {
+        return NextResponse.json({
+          success: true,
+          redirect: result.url,
+          user: 'user' in result ? result.user : null,
+        });
+      }
+      return NextResponse.json({ success: true, ...result });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Native Google auth error:", error);
     return NextResponse.json(
