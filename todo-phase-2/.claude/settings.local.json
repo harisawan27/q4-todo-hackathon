@@ -42,7 +42,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm uninstall:*)",
       "Bash(pyproject:*)",
-      "Bash(README \")"
+      "Bash(README \")",
+      "Bash(npm i:*)"
     ]
   }
 }
