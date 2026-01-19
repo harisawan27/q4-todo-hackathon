@@ -39,7 +39,7 @@ export function GoogleSignInButton({ mode = "signin" }: GoogleSignInButtonProps)
       googleAuthRef.current = GoogleAuth;
 
       await GoogleAuth.initialize({
-        clientId: "39470081482-sno1ch3sj5qiueb0pk2t8nghtcqf5qde.apps.googleusercontent.com",
+        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
         scopes: ["profile", "email"],
         grantOfflineAccess: true,
       });
