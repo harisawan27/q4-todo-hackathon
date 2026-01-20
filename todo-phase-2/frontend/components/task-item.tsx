@@ -14,6 +14,7 @@ import {
   getHoursRemaining,
   formatCreatedAt,
 } from "@/lib/date-utils";
+import { cancelTaskReminders } from "@/lib/mobile-notifications";
 
 interface TaskItemProps {
   task: Task;
@@ -34,6 +35,11 @@ export function TaskItem({ task }: TaskItemProps) {
         data.completed ? "Task completed!" : "Task reopened",
         data.completed ? "Great job on finishing this task!" : "Task moved back to in progress"
       );
+
+      // Cancel reminders when task is completed
+      if (data.completed) {
+        cancelTaskReminders(task.id);
+      }
     },
     onError: () => {
       toast.error("Failed to update task", "Please try again");
@@ -45,6 +51,9 @@ export function TaskItem({ task }: TaskItemProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Task deleted", "The task has been permanently removed");
+
+      // Cancel reminders when task is deleted
+      cancelTaskReminders(task.id);
     },
     onError: () => {
       toast.error("Failed to delete task", "Please try again");

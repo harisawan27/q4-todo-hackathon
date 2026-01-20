@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import { apiPost, apiPatch } from "@/lib/api";
 import type { Task, TaskCreate, TaskUpdate, Priority } from "@/types/task";
 import { PRIORITY_CONFIG } from "@/types/task";
+import { scheduleTaskReminders, cancelTaskReminders } from "@/lib/mobile-notifications";
 
 /**
  * Convert UTC date/time from backend to local date/time for form inputs
@@ -123,9 +124,20 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: TaskCreate) => apiPost<Task>("/api/tasks", data),
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Task created!", "Your new task has been added");
+
+      // Schedule mobile reminders if task has due date
+      if (newTask.due_date) {
+        scheduleTaskReminders(
+          newTask.id,
+          newTask.title,
+          newTask.due_date,
+          newTask.due_time
+        );
+      }
+
       onClose();
     },
     onError: () => {
@@ -136,9 +148,26 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: TaskUpdate) => apiPatch<Task>(`/api/tasks/${task?.id}`, data),
-    onSuccess: () => {
+    onSuccess: (updatedTask) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Task updated!", "Your changes have been saved");
+
+      // Reschedule mobile reminders if due date changed
+      if (task?.id) {
+        // Cancel old reminders first
+        cancelTaskReminders(task.id);
+
+        // Schedule new reminders if task has due date and isn't completed
+        if (updatedTask.due_date && !updatedTask.completed) {
+          scheduleTaskReminders(
+            updatedTask.id,
+            updatedTask.title,
+            updatedTask.due_date,
+            updatedTask.due_time
+          );
+        }
+      }
+
       onClose();
     },
     onError: () => {

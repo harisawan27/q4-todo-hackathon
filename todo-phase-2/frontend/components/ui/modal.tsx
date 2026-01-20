@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -12,12 +12,63 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, children, title, size = "md" }: ModalProps) {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     },
     [onClose]
   );
+
+  // Handle visual viewport changes (keyboard open/close)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleViewportResize = () => {
+      const windowHeight = window.innerHeight;
+      const currentViewportHeight = viewport.height;
+
+      // If viewport height is significantly less than window height, keyboard is likely open
+      const isKeyboardOpen = windowHeight - currentViewportHeight > 150;
+      setKeyboardVisible(isKeyboardOpen);
+      setViewportHeight(currentViewportHeight);
+    };
+
+    // Initial check
+    handleViewportResize();
+
+    viewport.addEventListener("resize", handleViewportResize);
+    viewport.addEventListener("scroll", handleViewportResize);
+
+    return () => {
+      viewport.removeEventListener("resize", handleViewportResize);
+      viewport.removeEventListener("scroll", handleViewportResize);
+    };
+  }, [isOpen]);
+
+  // Scroll focused input into view when keyboard opens
+  useEffect(() => {
+    if (!isOpen || !keyboardVisible) return;
+
+    const handleFocusIn = () => {
+      // Small delay to let keyboard fully open
+      setTimeout(() => {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && modalRef.current?.contains(activeElement)) {
+          activeElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    return () => document.removeEventListener("focusin", handleFocusIn);
+  }, [isOpen, keyboardVisible]);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,8 +90,17 @@ export function Modal({ isOpen, onClose, children, title, size = "md" }: ModalPr
     xl: "max-w-xl",
   };
 
+  // Calculate max height based on viewport
+  const maxHeightStyle = viewportHeight
+    ? { maxHeight: `${viewportHeight - 32}px` }
+    : { maxHeight: "calc(100vh - 2rem)" };
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className={`fixed inset-0 z-50 flex ${
+        keyboardVisible ? "items-start pt-4" : "items-center"
+      } justify-center overflow-y-auto`}
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -48,10 +108,12 @@ export function Modal({ isOpen, onClose, children, title, size = "md" }: ModalPr
       />
       {/* Modal */}
       <div
-        className={`relative w-full ${sizeClasses[size]} mx-4 animate-modal-enter rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl`}
+        ref={modalRef}
+        style={maxHeightStyle}
+        className={`relative w-full ${sizeClasses[size]} mx-4 animate-modal-enter rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl overflow-y-auto`}
       >
         {title && (
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 -mt-6 -mx-6 px-6 pt-6 pb-4 z-10">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
             <button
               onClick={onClose}

@@ -202,7 +202,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">Push Notifications</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Receive push notifications in browser</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Receive push notifications</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input

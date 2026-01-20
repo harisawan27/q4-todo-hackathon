@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 
 from pywebpush import webpush, WebPushException
 from sqlmodel import Session, select
@@ -28,9 +27,9 @@ class WebPushService:
         subscription: PushSubscription,
         title: str,
         message: str,
-        notification_id: Optional[str] = None,
-        task_id: Optional[str] = None,
-        notification_type: Optional[str] = None,
+        notification_id: str | None = None,
+        task_id: str | None = None,
+        notification_type: str | None = None,
     ) -> bool:
         """
         Send a push notification to a specific subscription.
@@ -67,7 +66,6 @@ class WebPushService:
             return True
         except WebPushException as e:
             logger.error(f"Web push failed: {e}")
-            # If subscription is invalid (410 Gone or 404), it should be removed
             if e.response and e.response.status_code in (404, 410):
                 logger.info(f"Subscription expired, should be removed: {subscription.id}")
             return False

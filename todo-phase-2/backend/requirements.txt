@@ -21,6 +21,9 @@ aiosmtplib>=3.0.0
 # Web Push Notifications
 pywebpush>=2.0.0
 
+# HTTP Client (for FCM)
+httpx>=0.28.0
+
 # Background Jobs / Scheduler
 apscheduler>=3.10.0
 

@@ -19,8 +19,11 @@ import {
   setupPushMessageListener,
   getNotificationPermission,
 } from "@/lib/push-notifications";
-import { isNative, initCapacitor } from "@/lib/capacitor";
-import { setupMobileNotificationListeners } from "@/lib/mobile-notifications";
+import { isNative } from "@/lib/capacitor";
+import {
+  initMobileNotifications,
+  setupMobileNotificationListeners,
+} from "@/lib/mobile-notifications";
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -339,20 +342,17 @@ export function NotificationBell() {
   // Register for push notifications on mount
   useEffect(() => {
     const initPush = async () => {
-      // Initialize Capacitor for mobile
       if (isNative()) {
-        await initCapacitor();
-      }
-
-      // Initialize web push
-      const permission = getNotificationPermission();
-      if (permission === "granted") {
-        const registered = await registerPushNotifications();
-        setPushEnabled(registered);
-      } else if (permission === "default") {
-        // Auto-register on first visit (will show permission prompt)
-        const registered = await registerPushNotifications();
-        setPushEnabled(registered);
+        // Initialize mobile push (FCM)
+        const mobileEnabled = await initMobileNotifications();
+        setPushEnabled(mobileEnabled);
+      } else {
+        // Initialize web push
+        const permission = getNotificationPermission();
+        if (permission === "granted" || permission === "default") {
+          const registered = await registerPushNotifications();
+          setPushEnabled(registered);
+        }
       }
     };
 
@@ -361,15 +361,11 @@ export function NotificationBell() {
 
   // Listen for service worker messages about new notifications (web)
   useEffect(() => {
+    if (isNative()) return; // Skip on mobile
+
     const cleanup = setupPushMessageListener(
-      // On new notification from push
-      () => {
-        fetchUnreadCount();
-      },
-      // On notification clicked
-      (url) => {
-        router.push(url);
-      }
+      () => fetchUnreadCount(),
+      (url) => router.push(url)
     );
 
     return cleanup;
@@ -382,7 +378,7 @@ export function NotificationBell() {
     let cleanup: (() => void) | undefined;
 
     setupMobileNotificationListeners((taskId) => {
-      // Navigate to dashboard or specific task
+      // Navigate to dashboard when notification is tapped
       if (taskId) {
         router.push("/dashboard/tasks");
       } else {
