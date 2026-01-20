@@ -16,6 +16,22 @@ export const isIOS = (): boolean => {
   return Capacitor.getPlatform() === "ios";
 };
 
+/**
+ * Initialize all Capacitor plugins and listeners
+ * Call this once when the app starts
+ */
+export async function initCapacitor(): Promise<void> {
+  if (!isNative()) return;
+
+  // Initialize mobile notifications
+  try {
+    const { initMobileNotifications } = await import("./mobile-notifications");
+    await initMobileNotifications();
+  } catch (e) {
+    console.error("Failed to init mobile notifications:", e);
+  }
+}
+
 const APP_URL = "https://q4-todo-hackathon.vercel.app";
 
 export async function openOAuthInBrowser(provider: string): Promise<void> {

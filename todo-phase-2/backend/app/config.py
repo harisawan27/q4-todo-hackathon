@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     deadline_reminder_hours: int = 24  # Send reminder X hours before deadline
     scheduler_enabled: bool = True
 
+    # Web Push (VAPID) Settings
+    # Generate with: npx web-push generate-vapid-keys
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_email: str = "admin@donekaro.com"
+    push_enabled: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:

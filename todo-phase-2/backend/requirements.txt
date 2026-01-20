@@ -18,6 +18,9 @@ pydantic-settings>=2.6.0
 # Email
 aiosmtplib>=3.0.0
 
+# Web Push Notifications
+pywebpush>=2.0.0
+
 # Background Jobs / Scheduler
 apscheduler>=3.10.0
 

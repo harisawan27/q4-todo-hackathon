@@ -6,6 +6,7 @@ from sqlmodel import Session
 
 from app.models.notification import Notification, NotificationType
 from app.models.task import Task
+from app.services.webpush import webpush_service
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class NotificationService:
         notification_type: NotificationType,
         task_id: Optional[str] = None,
     ) -> Notification:
-        """Create a new notification"""
+        """Create a new notification and send push notification"""
         notification = Notification(
             user_id=user_id,
             title=title,
@@ -34,6 +35,15 @@ class NotificationService:
         session.commit()
         session.refresh(notification)
         logger.info(f"Created notification: {title} for user {user_id}")
+
+        # Send push notification to all user's devices
+        try:
+            push_count = webpush_service.send_to_user(session, user_id, notification)
+            if push_count > 0:
+                logger.info(f"Sent push notification to {push_count} device(s)")
+        except Exception as e:
+            logger.error(f"Failed to send push notification: {e}")
+
         return notification
 
     @staticmethod

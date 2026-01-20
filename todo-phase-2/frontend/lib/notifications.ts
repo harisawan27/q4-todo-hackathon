@@ -1,6 +1,7 @@
 "use client";
 
 import { apiGet, apiPatch, apiPost, apiDelete } from "./api";
+import { formatRelativeTime } from "./date-utils";
 
 export interface Notification {
   id: string;
@@ -102,28 +103,7 @@ export function getNotificationColor(type: NotificationType): string {
 }
 
 // Helper function to format notification time
+// Uses shared date-utils for consistent timezone handling
 export function formatNotificationTime(dateString: string): string {
-  // Ensure the date is parsed as UTC if no timezone info is present
-  const normalizedDate = dateString.endsWith('Z') || dateString.includes('+') || dateString.includes('-', 10)
-    ? dateString
-    : dateString + 'Z';
-  const date = new Date(normalizedDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) {
-    return "Just now";
-  } else if (diffMins < 60) {
-    return `${diffMins}m ago`;
-  } else if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  } else if (diffDays < 7) {
-    return `${diffDays}d ago`;
-  } else {
-    return date.toLocaleDateString();
-  }
+  return formatRelativeTime(dateString);
 }

@@ -9,6 +9,66 @@ import { apiPost, apiPatch } from "@/lib/api";
 import type { Task, TaskCreate, TaskUpdate, Priority } from "@/types/task";
 import { PRIORITY_CONFIG } from "@/types/task";
 
+/**
+ * Convert UTC date/time from backend to local date/time for form inputs
+ */
+function utcToLocalFormInputs(
+  utcDate: string | null,
+  utcTime: string | null
+): { localDate: string; localTime: string } {
+  if (!utcDate) return { localDate: "", localTime: "" };
+
+  if (!utcTime) {
+    // Date only - return as-is since we treat date-only as "whole day"
+    return { localDate: utcDate, localTime: "" };
+  }
+
+  // Combine UTC date and time, then convert to local
+  const utcDateTime = new Date(`${utcDate}T${utcTime}Z`);
+  const localDate = utcDateTime.getFullYear().toString().padStart(4, "0") +
+    "-" +
+    (utcDateTime.getMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    utcDateTime.getDate().toString().padStart(2, "0");
+  const localTime =
+    utcDateTime.getHours().toString().padStart(2, "0") +
+    ":" +
+    utcDateTime.getMinutes().toString().padStart(2, "0");
+
+  return { localDate, localTime };
+}
+
+/**
+ * Convert local date/time from form inputs to UTC for backend
+ */
+function localToUtcForSubmit(
+  localDate: string,
+  localTime: string
+): { utcDate: string | null; utcTime: string | null } {
+  if (!localDate) return { utcDate: null, utcTime: null };
+
+  if (!localTime) {
+    // Date only - send as-is (backend treats as end-of-day UTC)
+    return { utcDate: localDate, utcTime: null };
+  }
+
+  // Combine local date and time, then convert to UTC
+  const localDateTime = new Date(`${localDate}T${localTime}:00`);
+  const utcDate =
+    localDateTime.getUTCFullYear().toString().padStart(4, "0") +
+    "-" +
+    (localDateTime.getUTCMonth() + 1).toString().padStart(2, "0") +
+    "-" +
+    localDateTime.getUTCDate().toString().padStart(2, "0");
+  const utcTime =
+    localDateTime.getUTCHours().toString().padStart(2, "0") +
+    ":" +
+    localDateTime.getUTCMinutes().toString().padStart(2, "0") +
+    ":00";
+
+  return { utcDate, utcTime };
+}
+
 interface TaskFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,9 +98,13 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
       if (task) {
         setTitle(task.title);
         setDescription(task.description || "");
-        setDueDate(task.due_date || "");
-        // Convert HH:MM:SS to HH:MM for input
-        setDueTime(task.due_time ? task.due_time.slice(0, 5) : "");
+        // Convert UTC from backend to local for form display
+        const { localDate, localTime } = utcToLocalFormInputs(
+          task.due_date,
+          task.due_time
+        );
+        setDueDate(localDate);
+        setDueTime(localTime);
         setPriority(task.priority);
         setTags(task.tags || []);
       } else {
@@ -133,12 +197,14 @@ export function TaskFormDialog({ isOpen, onClose, task }: TaskFormDialogProps) {
 
     if (!validate()) return;
 
+    // Convert local date/time to UTC for backend
+    const { utcDate, utcTime } = localToUtcForSubmit(dueDate, dueTime);
+
     const formData = {
       title: title.trim(),
       description: description.trim() || null,
-      due_date: dueDate || null,
-      // Only include due_time if both date and time are set
-      due_time: dueDate && dueTime ? `${dueTime}:00` : null,
+      due_date: utcDate,
+      due_time: utcTime,
       priority: priority || undefined,
       tags: tags.length > 0 ? tags : undefined,
     };

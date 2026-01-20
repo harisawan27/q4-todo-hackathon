@@ -14,6 +14,13 @@ import {
   getNotificationColor,
   formatNotificationTime,
 } from "@/lib/notifications";
+import {
+  registerPushNotifications,
+  setupPushMessageListener,
+  getNotificationPermission,
+} from "@/lib/push-notifications";
+import { isNative, initCapacitor } from "@/lib/capacitor";
+import { setupMobileNotificationListeners } from "@/lib/mobile-notifications";
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -315,8 +322,10 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushEnabled, setPushEnabled] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -326,6 +335,68 @@ export function NotificationBell() {
       console.error("Error fetching unread count:", err);
     }
   }, []);
+
+  // Register for push notifications on mount
+  useEffect(() => {
+    const initPush = async () => {
+      // Initialize Capacitor for mobile
+      if (isNative()) {
+        await initCapacitor();
+      }
+
+      // Initialize web push
+      const permission = getNotificationPermission();
+      if (permission === "granted") {
+        const registered = await registerPushNotifications();
+        setPushEnabled(registered);
+      } else if (permission === "default") {
+        // Auto-register on first visit (will show permission prompt)
+        const registered = await registerPushNotifications();
+        setPushEnabled(registered);
+      }
+    };
+
+    initPush();
+  }, []);
+
+  // Listen for service worker messages about new notifications (web)
+  useEffect(() => {
+    const cleanup = setupPushMessageListener(
+      // On new notification from push
+      () => {
+        fetchUnreadCount();
+      },
+      // On notification clicked
+      (url) => {
+        router.push(url);
+      }
+    );
+
+    return cleanup;
+  }, [fetchUnreadCount, router]);
+
+  // Listen for mobile notification taps (native)
+  useEffect(() => {
+    if (!isNative()) return;
+
+    let cleanup: (() => void) | undefined;
+
+    setupMobileNotificationListeners((taskId) => {
+      // Navigate to dashboard or specific task
+      if (taskId) {
+        router.push("/dashboard/tasks");
+      } else {
+        router.push("/dashboard");
+      }
+      fetchUnreadCount();
+    }).then((cleanupFn) => {
+      cleanup = cleanupFn;
+    });
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [router, fetchUnreadCount]);
 
   useEffect(() => {
     fetchUnreadCount();

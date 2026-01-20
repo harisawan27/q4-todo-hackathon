@@ -22,6 +22,7 @@ def init_db() -> None:
     # Import models to ensure they are registered with SQLModel.metadata
     from app.models.task import Task  # noqa: F401
     from app.models.notification import Notification  # noqa: F401
+    from app.models.push_subscription import PushSubscription  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
 

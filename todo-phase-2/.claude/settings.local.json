@@ -43,7 +43,8 @@
       "Bash(npm uninstall:*)",
       "Bash(pyproject:*)",
       "Bash(README \")",
-      "Bash(npm i:*)"
+      "Bash(npm i:*)",
+      "Bash(npx web-push:*)"
     ]
   }
 }

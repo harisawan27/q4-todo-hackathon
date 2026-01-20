@@ -8,92 +8,15 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TaskFormDialog } from "@/components/task-form-dialog";
 import type { Task } from "@/types/task";
 import { PRIORITY_CONFIG } from "@/types/task";
+import {
+  getDueDateStatus,
+  formatDueDateTime,
+  getHoursRemaining,
+  formatCreatedAt,
+} from "@/lib/date-utils";
 
 interface TaskItemProps {
   task: Task;
-}
-
-// Helper to check if a date is overdue, today, or upcoming
-function getDueDateStatus(dueDate: string | null): "overdue" | "today" | "upcoming" | "none" {
-  if (!dueDate) return "none";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-
-  const diffTime = due.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "overdue";
-  if (diffDays === 0) return "today";
-  return "upcoming";
-}
-
-// Format time for display (HH:MM:SS -> 2:30 PM)
-function formatDueTime(dueTime: string | null): string {
-  if (!dueTime) return "";
-
-  const [hours, minutes] = dueTime.split(":");
-  const h = parseInt(hours, 10);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = h % 12 || 12;
-
-  return `${hour12}:${minutes} ${period}`;
-}
-
-// Calculate hours remaining until deadline (returns null if > 24 hours or no time set)
-function getHoursRemaining(dueDate: string | null, dueTime: string | null): number | null {
-  if (!dueDate || !dueTime) return null;
-
-  const now = new Date();
-  const deadline = new Date(dueDate);
-
-  // Parse the time (HH:MM:SS format)
-  const [hours, minutes, seconds = "0"] = dueTime.split(":");
-  deadline.setHours(parseInt(hours, 10), parseInt(minutes, 10), parseInt(seconds, 10), 0);
-
-  const msRemaining = deadline.getTime() - now.getTime();
-
-  // Only show if within next 24 hours and not yet passed
-  if (msRemaining <= 0 || msRemaining > 24 * 60 * 60 * 1000) {
-    return null;
-  }
-
-  return Math.floor(msRemaining / (1000 * 60 * 60)); // Convert to hours
-}
-
-// Format due date for display
-function formatDueDate(dueDate: string | null, dueTime: string | null): string {
-  if (!dueDate) return "";
-
-  const date = new Date(dueDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-
-  let dateStr: string;
-  if (due.getTime() === today.getTime()) {
-    dateStr = "Today";
-  } else if (due.getTime() === tomorrow.getTime()) {
-    dateStr = "Tomorrow";
-  } else {
-    dateStr = date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-    });
-  }
-
-  // Append time if set
-  const timeStr = formatDueTime(dueTime);
-  return timeStr ? `${dateStr} at ${timeStr}` : dateStr;
 }
 
 export function TaskItem({ task }: TaskItemProps) {
@@ -137,7 +60,7 @@ export function TaskItem({ task }: TaskItemProps) {
     setShowDeleteDialog(false);
   };
 
-  const dueDateStatus = getDueDateStatus(task.due_date);
+  const dueDateStatus = getDueDateStatus(task.due_date, task.due_time);
   const priorityConfig = task.priority ? PRIORITY_CONFIG[task.priority] : null;
   const hasDetails = task.description || task.tags.length > 0;
   const hoursRemaining = getHoursRemaining(task.due_date, task.due_time);
@@ -240,17 +163,14 @@ export function TaskItem({ task }: TaskItemProps) {
                   </svg>
                   <span className="font-medium">
                     {dueDateStatus === "overdue" && !task.completed && "Overdue: "}
-                    {formatDueDate(task.due_date, task.due_time)}
+                    {formatDueDateTime(task.due_date, task.due_time)}
                   </span>
                 </span>
               )}
 
               {/* Created date */}
               <span className="text-gray-400 dark:text-gray-500">
-                Created {new Date(task.created_at).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
+                Created {formatCreatedAt(task.created_at)}
               </span>
 
               {/* Expand button if has details */}
