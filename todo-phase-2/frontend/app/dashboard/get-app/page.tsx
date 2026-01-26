@@ -156,7 +156,7 @@ export default function GetAppPage() {
                   {/* Screen bezel */}
                   <div className="relative bg-black rounded-[1rem] overflow-hidden">
                     {/* Screenshot container - full display, no notch */}
-                    <div className="relative w-[270px] h-[585px] overflow-hidden">
+                    <div className="relative w-[270px] h-[596px] overflow-hidden">
                       <Image
                         src="/DoneKaro App.png"
                         alt="DoneKaro App Screenshot"

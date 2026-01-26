@@ -163,7 +163,7 @@ function SidebarContent({ isWebView = true }: { isWebView?: boolean }) {
             className="group flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-              <Image src="/logo.svg" alt="DoneKaro" width={24} height={24} className="invert" />
+              <Image src="/logo.svg" alt="DoneKaro" width={36} height={36} />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-white">Get the App</p>
