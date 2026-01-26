@@ -16,15 +16,6 @@ const features = [
   {
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-    title: "Works Offline",
-    description: "Access and manage your tasks even without internet connection",
-  },
-  {
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
     ),
@@ -38,7 +29,7 @@ const features = [
       </svg>
     ),
     title: "Secure & Private",
-    description: "Your data stays on your device with end-to-end encryption",
+    description: "Your data is protected with industry-standard encryption",
   },
   {
     icon: (
@@ -58,12 +49,6 @@ const features = [
     title: "Dark Mode",
     description: "Easy on the eyes with beautiful dark and light themes",
   },
-];
-
-const stats = [
-  { value: "50K+", label: "Downloads" },
-  { value: "4.8", label: "App Rating" },
-  { value: "99.9%", label: "Uptime" },
 ];
 
 export default function GetAppPage() {
@@ -99,16 +84,6 @@ export default function GetAppPage() {
                 most seamless task management experience on your Android device.
               </p>
 
-              {/* Stats */}
-              <div className="mt-8 flex justify-center lg:justify-start gap-8">
-                {stats.map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-
               {/* Download Button */}
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <a
@@ -139,86 +114,35 @@ export default function GetAppPage() {
               </p>
             </div>
 
-            {/* Right - Phone mockup */}
+            {/* Right - Phone mockup with actual screenshot */}
             <div className="mt-16 lg:mt-0 flex justify-center">
               <div className="relative">
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[3rem] blur-3xl opacity-20 scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[2.5rem] blur-3xl opacity-20 scale-110" />
 
-                {/* Phone frame */}
-                <div className="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
-                  <div className="bg-gray-800 rounded-[2.5rem] overflow-hidden">
-                    {/* Status bar */}
-                    <div className="bg-gray-900 px-6 py-2 flex justify-between items-center">
-                      <span className="text-white text-xs">9:41</span>
-                      <div className="flex gap-1">
-                        <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z"/>
-                        </svg>
-                        <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/>
-                        </svg>
-                      </div>
-                    </div>
+                {/* Phone frame - adjusted for typical mobile screenshot ratio (9:20) */}
+                <div className="relative bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+                  {/* Inner bezel */}
+                  <div className="bg-black rounded-[2.2rem] p-1 overflow-hidden">
+                    {/* Notch/Dynamic Island */}
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-20 h-6 bg-black rounded-full" />
 
-                    {/* App screen mockup */}
-                    <div className="bg-white dark:bg-gray-900 h-[500px] w-[260px] p-4">
-                      {/* App header */}
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                          <Image src="/logo.svg" alt="DoneKaro" width={24} height={24} className="invert" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 dark:text-white">DoneKaro</h3>
-                          <p className="text-xs text-gray-500">Good morning!</p>
-                        </div>
-                      </div>
-
-                      {/* Tasks preview */}
-                      <div className="space-y-3">
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
-                          <div className="flex items-start gap-3">
-                            <div className="h-5 w-5 rounded-full border-2 border-blue-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">Review project proposal</p>
-                              <p className="text-xs text-gray-500 mt-1">Due today</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
-                          <div className="flex items-start gap-3">
-                            <div className="h-5 w-5 rounded-full border-2 border-green-500 bg-green-500 flex-shrink-0 mt-0.5 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-400 line-through">Team standup meeting</p>
-                              <p className="text-xs text-gray-400 mt-1">Completed</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
-                          <div className="flex items-start gap-3">
-                            <div className="h-5 w-5 rounded-full border-2 border-blue-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">Prepare presentation</p>
-                              <p className="text-xs text-orange-500 mt-1">Due tomorrow</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Floating action button */}
-                      <div className="absolute bottom-24 right-8">
-                        <div className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg flex items-center justify-center">
-                          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </div>
-                      </div>
+                    {/* Screenshot container - maintains aspect ratio */}
+                    <div className="relative w-[280px] h-[600px] rounded-[2rem] overflow-hidden bg-gray-900">
+                      <Image
+                        src="/DoneKaro App.png"
+                        alt="DoneKaro App Screenshot"
+                        fill
+                        className="object-cover object-top"
+                        priority
+                      />
                     </div>
                   </div>
+
+                  {/* Side buttons */}
+                  <div className="absolute right-[-3px] top-24 w-1 h-12 bg-gray-700 rounded-l-sm" />
+                  <div className="absolute left-[-3px] top-20 w-1 h-8 bg-gray-700 rounded-r-sm" />
+                  <div className="absolute left-[-3px] top-32 w-1 h-16 bg-gray-700 rounded-r-sm" />
                 </div>
               </div>
             </div>
@@ -324,7 +248,7 @@ export default function GetAppPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">Enable unknown sources</h3>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  Go to Settings → Security → Enable &quot;Install from unknown sources&quot; for your browser.
+                  Go to Settings &rarr; Security &rarr; Enable &quot;Install from unknown sources&quot; for your browser.
                 </p>
               </div>
             </div>
