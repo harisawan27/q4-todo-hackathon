@@ -27,7 +27,7 @@ function AssistantAvatar({ size = "sm" }: { size?: "sm" | "md" | "lg" }) {
     lg: "h-6 w-6",
   };
   return (
-    <div className={`${sizeClasses[size]} flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-md`}>
+    <div className={`${sizeClasses[size]} flex items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md`}>
       <Bot className={`${iconSizes[size]} text-white`} />
     </div>
   );
@@ -147,10 +147,10 @@ export function ChatWidget({ userId }: { userId: string }) {
       {/* Chat Toggle Button - AI Agent Avatar */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl ${
+        className={`fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl ${
           isOpen
             ? "bg-gray-200 dark:bg-gray-700"
-            : "bg-gradient-to-br from-violet-500 to-purple-600"
+            : "bg-gradient-to-br from-blue-600 to-indigo-600"
         }`}
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
@@ -166,9 +166,9 @@ export function ChatWidget({ userId }: { userId: string }) {
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[520px] w-[400px] flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden animate-chat-panel-enter">
+        <div className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 left-2 sm:left-auto z-50 flex h-[calc(100vh-6rem)] sm:h-[520px] w-auto sm:w-[400px] max-h-[600px] flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden animate-chat-panel-enter">
           {/* Header */}
-          <div className="flex items-center gap-3 border-b bg-gradient-to-r from-violet-500/10 to-purple-500/10 px-4 py-4">
+          <div className="flex items-center gap-3 border-b bg-gradient-to-r from-blue-500/10 to-indigo-500/10 px-3 sm:px-4 py-3 sm:py-4">
             <AssistantAvatar size="md" />
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">DoneKaro AI</h3>
@@ -187,7 +187,7 @@ export function ChatWidget({ userId }: { userId: string }) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -205,9 +205,9 @@ export function ChatWidget({ userId }: { userId: string }) {
                 </div>
 
                 {/* Message Bubble */}
-                <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"}`}>
+                <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} min-w-0 flex-1`}>
                   <div
-                    className={`max-w-[280px] rounded-2xl px-4 py-2.5 shadow-sm ${
+                    className={`max-w-full sm:max-w-[280px] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm ${
                       message.role === "user"
                         ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-br-md"
                         : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-bl-md"
@@ -232,9 +232,9 @@ export function ChatWidget({ userId }: { userId: string }) {
                 </div>
                 <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
-                    <span className="h-2 w-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                    <span className="h-2 w-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                    <span className="h-2 w-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "300ms" }}></span>
                   </div>
                   <span className="text-sm text-muted-foreground ml-1">Thinking...</span>
                 </div>
@@ -244,21 +244,21 @@ export function ChatWidget({ userId }: { userId: string }) {
           </div>
 
           {/* Input */}
-          <div className="border-t bg-background p-4">
-            <div className="flex items-center gap-3">
+          <div className="border-t bg-background p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about your tasks..."
-                className="flex-1 rounded-full border border-gray-200 dark:border-gray-700 bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                placeholder="Ask me anything..."
+                className="flex-1 min-w-0 rounded-full border border-gray-200 dark:border-gray-700 bg-muted/50 px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 disabled={isLoading}
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-md"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-md"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -267,7 +267,7 @@ export function ChatWidget({ userId }: { userId: string }) {
                 )}
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-2">
+            <p className="text-[10px] text-muted-foreground text-center mt-2 hidden sm:block">
               DoneKaro AI • Get things done faster
             </p>
           </div>

@@ -110,11 +110,11 @@ export function Modal({ isOpen, onClose, children, title, size = "md" }: ModalPr
       <div
         ref={modalRef}
         style={maxHeightStyle}
-        className={`relative w-full ${sizeClasses[size]} mx-4 animate-modal-enter rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl overflow-y-auto`}
+        className={`relative w-full ${sizeClasses[size]} mx-2 sm:mx-4 animate-modal-enter rounded-xl bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-2xl overflow-y-auto`}
       >
         {title && (
-          <div className="mb-4 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 -mt-6 -mx-6 px-6 pt-6 pb-4 z-10">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+          <div className="mb-4 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800 -mt-4 sm:-mt-6 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 z-10 border-b border-gray-100 dark:border-gray-700 sm:border-b-0">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
             <button
               onClick={onClose}
               className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"

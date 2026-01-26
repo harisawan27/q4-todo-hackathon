@@ -1,12 +1,19 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/lib/sidebar-context";
-import { useEffect } from "react";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  webOnly?: boolean;
+}
+
+const navigation: NavItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -54,7 +61,7 @@ const navigation = [
   },
 ];
 
-const bottomNavigation = [
+const bottomNavigation: NavItem[] = [
   {
     name: "Profile",
     href: "/dashboard/profile",
@@ -74,11 +81,26 @@ const bottomNavigation = [
       </svg>
     ),
   },
+  {
+    name: "DoneKaro App",
+    href: "/dashboard/get-app",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+    ),
+    webOnly: true,
+  },
 ];
 
-function SidebarContent() {
+function SidebarContent({ isWebView = true }: { isWebView?: boolean }) {
   const pathname = usePathname();
   const { close } = useSidebar();
+
+  // Filter items based on webOnly flag - hide app promo when in mobile app
+  const filteredBottomNav = bottomNavigation.filter(
+    (item) => !item.webOnly || isWebView
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -112,7 +134,7 @@ function SidebarContent() {
 
       {/* Bottom Navigation - Profile & Settings */}
       <div className="border-t border-gray-100 dark:border-gray-700 px-3 py-4 space-y-1">
-        {bottomNavigation.map((item) => {
+        {filteredBottomNav.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
@@ -132,20 +154,29 @@ function SidebarContent() {
         })}
       </div>
 
-      {/* Bottom section */}
-      <div className="border-t border-gray-100 dark:border-gray-700 p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-gray-50 dark:bg-gray-700 p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-            <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      {/* App Promo Banner - Only on web */}
+      {isWebView && (
+        <div className="border-t border-gray-100 dark:border-gray-700 p-4">
+          <Link
+            href="/dashboard/get-app"
+            onClick={close}
+            className="group flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
+              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-white">Get the App</p>
+              <p className="text-xs text-blue-100">Faster & works offline</p>
+            </div>
+            <svg className="h-4 w-4 text-white/70 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Free Plan</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Unlimited tasks</p>
-          </div>
+          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -153,6 +184,26 @@ function SidebarContent() {
 export function Sidebar() {
   const { isOpen, close } = useSidebar();
   const pathname = usePathname();
+
+  // Detect if running inside mobile app webview
+  // The app sets a custom user agent or URL param to identify itself
+  const [isWebView, setIsWebView] = useState(true);
+
+  useEffect(() => {
+    // Check for mobile app webview indicators
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isInAppWebView =
+      userAgent.includes('donekaro-app') || // Custom user agent from app
+      userAgent.includes('wv') || // Android WebView
+      window.matchMedia('(display-mode: standalone)').matches || // PWA
+      (window as any).isNativeApp === true; // JS bridge flag
+
+    // Also check URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAppParam = urlParams.get('source') === 'app';
+
+    setIsWebView(!isInAppWebView && !isAppParam);
+  }, []);
 
   // Close sidebar on route change
   useEffect(() => {
@@ -163,7 +214,7 @@ export function Sidebar() {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 lg:block">
-        <SidebarContent />
+        <SidebarContent isWebView={isWebView} />
       </aside>
 
       {/* Mobile Overlay */}
@@ -189,7 +240,7 @@ export function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <SidebarContent />
+        <SidebarContent isWebView={isWebView} />
       </aside>
     </>
   );
