@@ -23,6 +23,8 @@ def init_db() -> None:
     from app.models.task import Task  # noqa: F401
     from app.models.notification import Notification  # noqa: F401
     from app.models.push_subscription import PushSubscription  # noqa: F401
+    from app.models.conversation import Conversation  # noqa: F401
+    from app.models.message import Message  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
 

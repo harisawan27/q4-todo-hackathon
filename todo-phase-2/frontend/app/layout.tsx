@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/lib/providers";
+import { ChatWidgetWrapper } from "@/components/chat-widget-wrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -42,7 +43,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <ChatWidgetWrapper />
+        </Providers>
         <Analytics />
       </body>
     </html>

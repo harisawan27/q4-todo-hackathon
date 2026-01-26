@@ -159,11 +159,27 @@ As a user, I want my conversation history to be saved so that I can refer back t
 
 ## Architecture Constraints
 
+### Phase 2 Compatibility (Critical)
+
+| Constraint | Requirement | Rationale |
+|------------|-------------|-----------|
+| **No Phase 2 Modifications** | Phase 2 codebase (`todo-phase-2/`) MUST NOT be modified in any way | Ensures Phase 2 remains stable and independently deployable |
+| **Shared Database** | Phase 3 connects to the same Neon PostgreSQL database as Phase 2 | Enables real-time data synchronization between interfaces |
+| **Task Schema Parity** | Phase 3 Task model MUST exactly match Phase 2's Task table schema | Data created in either interface must be readable by the other |
+| **Independent Deployment** | Phase 3 must be deployable without affecting Phase 2 operation | Both systems can run simultaneously without conflicts |
+| **Auth Compatibility** | Phase 3 uses the same Better Auth system and user identities | Users maintain single identity across both interfaces |
+
+**Explicit Guarantees**:
+- Tasks created via chatbot MUST appear immediately in Phase 2 UI
+- Tasks created via Phase 2 UI MUST appear immediately in chatbot queries
+- Task updates/deletes via either interface MUST be reflected in the other
+- User authentication tokens from Phase 2 MUST work in Phase 3
+
 ### Core Architecture Decisions
 
 1. **Monorepo Setup**: All Phase 3 code resides in `todo-phase-3` directory. Phase 2 code (`todo-phase-2`) MUST NOT be modified.
 
-2. **Shared Database**: Phase 3 connects to the same Neon PostgreSQL database as Phase 2. The Task model definition must be replicated (not imported) to maintain independence.
+2. **Shared Database**: Phase 3 connects to the same Neon PostgreSQL database as Phase 2. The Task model definition must be replicated (not imported) to maintain codebase independence while ensuring schema compatibility.
 
 3. **Stateless Backend**: The FastAPI server maintains no in-memory state. Each request:
    - Retrieves context from database
@@ -199,15 +215,34 @@ The MCP server MUST expose these tools to the agent:
   - Request body: `{ "message": string, "conversation_id"?: string }`
   - Response: `{ "response": string, "conversation_id": string }`
 
-### Request Cycle Flow
+### Agent Logic (Request Cycle)
 
-1. Receive chat request with user_id and message
-2. Fetch or create conversation from database
-3. Append user message to database
-4. Build context from conversation history
-5. Run OpenAI Agent with MCP tools
-6. Append assistant response to database
-7. Return response to client
+**Endpoint**: POST `/api/{user_id}/chat`
+
+| Step | Action | Description |
+|------|--------|-------------|
+| 1 | Fetch Conversation History | Retrieve all messages for the user's current conversation from the database to provide context |
+| 2 | Append User Message | Store the incoming user message in the database before processing |
+| 3 | Run OpenAI Agent | Execute the OpenAI Agent with MCP tools, passing conversation context. Agent interprets natural language and invokes appropriate MCP tools |
+| 4 | Store Response & Tool Outputs | Persist the assistant's response and any tool execution results (task created, task list, etc.) to the database |
+| 5 | Return Response | Send the formatted assistant response back to ChatKit for display |
+
+**Request Flow Diagram**:
+```
+ChatKit → POST /api/{user_id}/chat → FastAPI Server
+                                          ↓
+                                    [1] Fetch history from DB
+                                          ↓
+                                    [2] Append user message to DB
+                                          ↓
+                                    [3] Run OpenAI Agent (MCP tools)
+                                          ↓
+                                    [4] Store response & tool outputs in DB
+                                          ↓
+                                    [5] Return response ← ChatKit
+```
+
+**Stateless Guarantee**: The backend maintains no in-memory state between requests. All context is reconstructed from the database on each request, ensuring horizontal scalability.
 
 ## Assumptions
 
@@ -229,6 +264,52 @@ The MCP server MUST expose these tools to the agent:
 - Mobile native app (web responsive is in scope)
 - Modifications to Phase 2 codebase
 - User registration (using existing users from Phase 2)
+
+## Deliverables *(mandatory)*
+
+### Directory Structure
+
+```
+todo-phase-3/
+├── frontend/                    # OpenAI ChatKit Next.js application
+│   ├── src/
+│   │   ├── app/                 # Next.js app router pages
+│   │   ├── components/          # React components for chat interface
+│   │   └── lib/                 # Utilities and API client
+│   ├── package.json
+│   └── README.md
+├── backend/                     # Python FastAPI server
+│   ├── app/
+│   │   ├── main.py              # FastAPI application entry point
+│   │   ├── models/              # SQLModel definitions (Task, Conversation, Message)
+│   │   ├── mcp/                 # MCP server implementation and tools
+│   │   ├── agent/               # OpenAI Agents SDK integration
+│   │   └── api/                 # API route handlers
+│   ├── requirements.txt
+│   └── README.md
+├── specs/                       # Specification files
+│   └── 001-todo-ai-chatbot/
+│       ├── spec.md              # This specification
+│       ├── plan.md              # Implementation plan
+│       └── tasks.md             # Task breakdown
+└── README.md                    # Project README with setup instructions
+```
+
+### Deliverable Checklist
+
+| Deliverable | Description | Acceptance |
+|-------------|-------------|------------|
+| `/frontend` directory | Fully functional ChatKit-based chat interface | Users can send messages and receive responses |
+| `/backend` directory | FastAPI server with MCP integration | API responds to chat requests and executes MCP tools |
+| MCP Server | Task management tools exposed via MCP protocol | All 5 tools (add, list, complete, update, delete) functional |
+| Specification files | Complete specs in `/specs` directory | spec.md, plan.md, tasks.md present |
+| Project README | Setup and run instructions | New developer can run the system in <10 minutes |
+
+### Documentation Requirements
+
+- **README.md** (root): Overview of Phase 3, prerequisites, quick start guide
+- **backend/README.md**: Instructions for running the MCP server and FastAPI backend, environment variables, database setup
+- **frontend/README.md**: Instructions for running ChatKit, API configuration, development setup
 
 ## Success Criteria *(mandatory)*
 

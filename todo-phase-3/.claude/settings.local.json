@@ -4,7 +4,29 @@
       "Bash(git fetch:*)",
       "Bash(ls:*)",
       "Bash(pwsh:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(if not exist \"F:\\\\q4-todo-hackathon\\\\todo-phase-3\\\\history\\\\prompts\\\\001-todo-ai-chatbot\" mkdir \"F:\\\\q4-todo-hackathon\\\\todo-phase-3\\\\history\\\\prompts\\\\001-todo-ai-chatbot\")",
+      "Bash(bash:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(dir:*)",
+      "Bash(python -m venv:*)",
+      "Bash(.venvScriptspip install -r requirements.txt)",
+      "Bash(\".venv/Scripts/pip.exe\" install -r requirements.txt)",
+      "Bash(\".venv/Scripts/pytest.exe\" tests/ -v)",
+      "Bash(\".venv/Scripts/uvicorn.exe\" app.main:app --reload --port 8001)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(\".venv/Scripts/pip.exe\" install litellm google-generativeai)",
+      "Bash(if [ -f \"F:\\\\q4-todo-hackathon\\\\todo-phase-2\\\\frontend\\\\.env.example\" ])",
+      "Bash(then echo \"\")",
+      "Bash(else echo \"No .env.example\")",
+      "Bash(fi)",
+      "Bash(pip install:*)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(ping:*)",
+      "Bash(.venvScriptsactivate)",
+      "Bash(uvicorn app.main:app:*)"
     ]
   }
 }

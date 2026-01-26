@@ -44,7 +44,8 @@
       "Bash(pyproject:*)",
       "Bash(README \")",
       "Bash(npm i:*)",
-      "Bash(npx web-push:*)"
+      "Bash(npx web-push:*)",
+      "Bash(python -m uvicorn:*)"
     ]
   }
 }

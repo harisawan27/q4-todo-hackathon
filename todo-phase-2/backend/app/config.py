@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     vapid_email: str = "admin@donekaro.com"
     push_enabled: bool = False
 
+    # AI Chatbot Settings (LiteLLM + Gemini)
+    gemini_api_key: str = ""
+    llm_model: str = "gemini/gemini-2.5-flash"
+    chatbot_enabled: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:

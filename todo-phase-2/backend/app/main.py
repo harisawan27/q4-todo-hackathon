@@ -15,6 +15,7 @@ from app.routes.health import router as health_router
 from app.routes.tasks import router as tasks_router
 from app.routes.notifications import router as notifications_router
 from app.routes.push import router as push_router
+from app.routes.chat import router as chat_router
 from app.services.scheduler import scheduler_service
 
 # Configure logging
@@ -107,6 +108,7 @@ app.include_router(health_router)
 app.include_router(tasks_router)
 app.include_router(notifications_router)
 app.include_router(push_router)
+app.include_router(chat_router)
 
 
 @app.get("/")
