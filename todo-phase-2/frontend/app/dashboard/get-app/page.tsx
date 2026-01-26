@@ -138,7 +138,7 @@ export default function GetAppPage() {
 
               {/* Version info */}
               <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                Version 1.0 • Requires Android 8.0 or higher • 15MB
+                Version 1.0 • Requires Android 8.0 or higher • 9MB
               </p>
             </div>
 
