@@ -18,7 +18,7 @@ export default function DashboardLayout({
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 mb-4 overflow-hidden">
-            <Image src="/logo.svg" alt="DoneKaro" width={32} height={32} className="brightness-0 invert animate-pulse" />
+            <Image src="/logo.svg" alt="DoneKaro" width={32} height={32} className="animate-pulse" />
           </div>
           <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading your workspace...</p>
