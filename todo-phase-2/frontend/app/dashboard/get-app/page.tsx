@@ -16,6 +16,15 @@ const features = [
   {
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-2.47 2.47a2.25 2.25 0 01-1.591.659H9.061a2.25 2.25 0 01-1.591-.659L5 14.5m14 0V17a2 2 0 01-2 2H7a2 2 0 01-2-2v-2.5" />
+      </svg>
+    ),
+    title: "DoneKaro AI",
+    description: "Your personal AI assistant that helps manage tasks with natural conversations",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
     ),
@@ -48,6 +57,25 @@ const features = [
     ),
     title: "Dark Mode",
     description: "Easy on the eyes with beautiful dark and light themes",
+  },
+];
+
+const aiFeatures = [
+  {
+    title: "Natural Language Tasks",
+    description: "Just tell the AI what you need to do in plain English. Say \"Remind me to call mom tomorrow at 5pm\" and it's done.",
+  },
+  {
+    title: "Smart Suggestions",
+    description: "Get intelligent recommendations on task prioritization, deadlines, and how to break down complex projects.",
+  },
+  {
+    title: "Quick Actions",
+    description: "Complete, reschedule, or modify tasks just by chatting. No need to navigate through menus.",
+  },
+  {
+    title: "Context Aware",
+    description: "The AI remembers your preferences and patterns to provide personalized assistance.",
   },
 ];
 
@@ -114,38 +142,134 @@ export default function GetAppPage() {
               </p>
             </div>
 
-            {/* Right - Phone mockup with actual screenshot */}
+            {/* Right - Phone mockup (Samsung Galaxy S25 style - flat edges, minimal corners) */}
             <div className="mt-16 lg:mt-0 flex justify-center">
               <div className="relative">
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[2.5rem] blur-3xl opacity-20 scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[1rem] blur-3xl opacity-20 scale-110" />
 
-                {/* Phone frame - adjusted for typical mobile screenshot ratio (9:20) */}
-                <div className="relative bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
-                  {/* Inner bezel */}
-                  <div className="bg-black rounded-[2.2rem] p-1 overflow-hidden">
-                    {/* Notch/Dynamic Island */}
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-20 h-6 bg-black rounded-full" />
+                {/* Phone frame - Samsung S25 style with flat edges and subtle corners */}
+                <div className="relative bg-gray-800 rounded-[1.2rem] p-[3px] shadow-2xl">
+                  {/* Metal frame effect */}
+                  <div className="absolute inset-0 rounded-[1.2rem] bg-gradient-to-b from-gray-600 via-gray-800 to-gray-600 opacity-50" />
 
-                    {/* Screenshot container - maintains aspect ratio */}
-                    <div className="relative w-[280px] h-[600px] rounded-[2rem] overflow-hidden bg-gray-900">
+                  {/* Screen bezel */}
+                  <div className="relative bg-black rounded-[1rem] overflow-hidden">
+                    {/* Screenshot container - full display, no notch */}
+                    <div className="relative w-[270px] h-[585px] overflow-hidden">
                       <Image
                         src="/DoneKaro App.png"
                         alt="DoneKaro App Screenshot"
                         fill
                         className="object-cover object-top"
                         priority
+                        sizes="270px"
                       />
                     </div>
                   </div>
 
-                  {/* Side buttons */}
-                  <div className="absolute right-[-3px] top-24 w-1 h-12 bg-gray-700 rounded-l-sm" />
-                  <div className="absolute left-[-3px] top-20 w-1 h-8 bg-gray-700 rounded-r-sm" />
-                  <div className="absolute left-[-3px] top-32 w-1 h-16 bg-gray-700 rounded-r-sm" />
+                  {/* Side buttons - power */}
+                  <div className="absolute right-[-2px] top-28 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
+                  {/* Volume buttons */}
+                  <div className="absolute left-[-2px] top-24 w-[3px] h-10 bg-gray-700 rounded-r-sm" />
+                  <div className="absolute left-[-2px] top-36 w-[3px] h-10 bg-gray-700 rounded-r-sm" />
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Chatbot Feature Section - Main Highlight */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-24">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 mb-6">
+              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+              <span className="text-sm font-medium text-white">Powered by AI</span>
+            </div>
+
+            <h2 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
+              Meet DoneKaro AI
+            </h2>
+            <p className="mt-6 text-xl text-blue-100 max-w-3xl mx-auto">
+              Your intelligent task assistant that understands you. Just chat naturally and let AI handle the rest.
+              No more tapping through menus — just tell it what you need.
+            </p>
+          </div>
+
+          {/* AI Chat Demo */}
+          <div className="max-w-2xl mx-auto mb-16">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="space-y-4">
+                {/* User message */}
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-xs">
+                    <p className="text-sm">Add a task to buy groceries tomorrow morning</p>
+                  </div>
+                </div>
+                {/* AI response */}
+                <div className="flex justify-start">
+                  <div className="bg-white/20 text-white rounded-2xl rounded-bl-md px-4 py-2 max-w-sm">
+                    <p className="text-sm">Done! I&apos;ve created a task &quot;Buy groceries&quot; scheduled for tomorrow at 9:00 AM. Would you like me to add any specific items to the task description?</p>
+                  </div>
+                </div>
+                {/* User message */}
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-xs">
+                    <p className="text-sm">Yes, add milk, eggs, and bread</p>
+                  </div>
+                </div>
+                {/* AI response */}
+                <div className="flex justify-start">
+                  <div className="bg-white/20 text-white rounded-2xl rounded-bl-md px-4 py-2 max-w-sm">
+                    <p className="text-sm">Updated! Your grocery task now includes: milk, eggs, and bread. Anything else you need help with?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Feature Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {aiFeatures.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="group bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/20 hover:border-white/30 transition-all duration-300"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 text-white mb-4">
+                  <span className="font-bold">{index + 1}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-blue-100 text-sm">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA in AI section */}
+          <div className="text-center mt-12">
+            <a
+              href="/donekaro-1.0.apk"
+              download
+              className="inline-flex items-center justify-center gap-3 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-indigo-600 shadow-lg hover:bg-blue-50 transition-colors"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Try DoneKaro AI Now
+            </a>
           </div>
         </div>
       </div>
