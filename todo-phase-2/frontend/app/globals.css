@@ -89,6 +89,21 @@ body {
   }
 }
 
+@keyframes chat-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-chat-panel-enter {
+  animation: chat-panel-enter 0.3s ease-out;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -10,6 +10,8 @@ const config: CapacitorConfig = {
     cleartext: false,
     // Allow Capacitor bridge to work with remote URL
     androidScheme: "https",
+    // Show custom offline page when server can't be reached
+    errorPath: "offline.html",
   },
   android: {
     // Better web experience

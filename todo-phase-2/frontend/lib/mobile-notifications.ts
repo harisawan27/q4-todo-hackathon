@@ -241,6 +241,7 @@ export async function cancelTaskReminders(taskId: string): Promise<boolean> {
 
 /**
  * Show an immediate notification (for in-app events)
+ * Fires within 1 second to ensure immediate delivery
  */
 export async function showImmediateNotification(
   id: string,
@@ -254,17 +255,23 @@ export async function showImmediateNotification(
   if (!LN) return false;
 
   try {
+    // Schedule for 1 second in the future to ensure it fires immediately
+    const fireAt = new Date(Date.now() + 1000);
+
     await LN.schedule({
       notifications: [
         {
           id: hashStringToId(id),
           title,
           body,
+          schedule: { at: fireAt },
           channelId: "task-updates",
+          sound: "default",
           extra: taskId ? { task_id: taskId } : {},
         },
       ],
     });
+    console.log(`[Mobile Push] Scheduled immediate notification: ${title}`);
     return true;
   } catch (e) {
     console.error("[Mobile Push] Failed to show notification:", e);

@@ -25,14 +25,11 @@ class Settings(BaseSettings):
     port: int = 8000
     debug: bool = False
 
-    # Email Configuration (SMTP)
-    smtp_host: str = "smtp.gmail.com"
-    smtp_port: int = 587
-    smtp_user: str = ""
-    smtp_password: str = ""
-    smtp_from_email: str = "111harisawan@gmail.com"
-    smtp_from_name: str = "DoneKaro"
-    email_enabled: bool = False
+    # Email Configuration (Resend API - simple & free)
+    # Get your API key from https://resend.com (free: 100 emails/day)
+    resend_api_key: str = ""
+    email_from: str = "DoneKaro <onboarding@resend.dev>"  # Use your domain after verification
+    email_enabled: bool = True
 
     # Notification Settings
     deadline_reminder_hours: int = 24  # Send reminder X hours before deadline

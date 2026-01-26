@@ -1,11 +1,10 @@
-"""Email service for sending notifications"""
+"""Email service using Resend API - Simple and free (100 emails/day)"""
 
 import logging
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from typing import Optional
 from datetime import date, time
+
+import httpx
 
 from app.config import get_settings
 
@@ -13,20 +12,31 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Service for sending email notifications"""
+    """
+    Email service using Resend API.
+
+    Setup:
+    1. Sign up at https://resend.com (free)
+    2. Get your API key from the dashboard
+    3. Set RESEND_API_KEY in your .env
+
+    Free tier: 100 emails/day, 3000/month
+    """
+
+    RESEND_API_URL = "https://api.resend.com/emails"
 
     def __init__(self):
         self.settings = get_settings()
+        self.api_key = self.settings.resend_api_key
+        self.from_email = self.settings.email_from or "DoneKaro <onboarding@resend.dev>"
+        self.enabled = self.settings.email_enabled and bool(self.api_key)
 
-    def _get_smtp_connection(self) -> smtplib.SMTP:
-        """Create and return an SMTP connection"""
-        server = smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port)
-        server.starttls()
-        if self.settings.smtp_user and self.settings.smtp_password:
-            server.login(self.settings.smtp_user, self.settings.smtp_password)
-        return server
+        if self.enabled:
+            logger.info("Email service enabled (Resend)")
+        else:
+            logger.info("Email service disabled (no RESEND_API_KEY)")
 
-    def send_email(
+    async def send_email(
         self,
         to_email: str,
         subject: str,
@@ -34,45 +44,74 @@ class EmailService:
         plain_content: Optional[str] = None,
     ) -> bool:
         """
-        Send an email to a recipient.
+        Send an email using Resend API.
         Returns True if successful, False otherwise.
         """
-        if not self.settings.email_enabled:
+        if not self.enabled:
             logger.info(f"Email disabled. Would send to {to_email}: {subject}")
             return False
 
-        if not self.settings.smtp_user or not self.settings.smtp_password:
-            logger.warning("SMTP credentials not configured")
-            return False
-
         try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"{self.settings.smtp_from_name} <{self.settings.smtp_from_email}>"
-            msg["To"] = to_email
-
-            # Add plain text version
-            if plain_content:
-                part1 = MIMEText(plain_content, "plain")
-                msg.attach(part1)
-
-            # Add HTML version
-            part2 = MIMEText(html_content, "html")
-            msg.attach(part2)
-
-            # Send the email
-            with self._get_smtp_connection() as server:
-                server.sendmail(
-                    self.settings.smtp_from_email,
-                    to_email,
-                    msg.as_string()
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self.RESEND_API_URL,
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "from": self.from_email,
+                        "to": [to_email],
+                        "subject": subject,
+                        "html": html_content,
+                        "text": plain_content,
+                    },
+                    timeout=10.0,
                 )
 
-            logger.info(f"Email sent successfully to {to_email}")
-            return True
+                if response.status_code == 200:
+                    result = response.json()
+                    logger.info(f"Email sent successfully to {to_email}, id: {result.get('id')}")
+                    return True
+                else:
+                    logger.error(f"Resend API error {response.status_code}: {response.text}")
+                    return False
 
+        except httpx.TimeoutException:
+            logger.error(f"Email request timed out for {to_email}")
+            return False
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {e}")
+            return False
+
+    # Synchronous wrapper for backwards compatibility with scheduler
+    def send_email_sync(
+        self,
+        to_email: str,
+        subject: str,
+        html_content: str,
+        plain_content: Optional[str] = None,
+    ) -> bool:
+        """Synchronous version of send_email for use in scheduler"""
+        import asyncio
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # We're in an async context, create a new task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        self.send_email(to_email, subject, html_content, plain_content)
+                    )
+                    return future.result(timeout=15)
+            else:
+                return loop.run_until_complete(
+                    self.send_email(to_email, subject, html_content, plain_content)
+                )
+        except Exception as e:
+            logger.error(f"Sync email send failed: {e}")
             return False
 
     def send_deadline_reminder(
@@ -146,7 +185,7 @@ class EmailService:
         This email was sent by DoneKaro
         """
 
-        return self.send_email(to_email, subject, html_content, plain_content)
+        return self.send_email_sync(to_email, subject, html_content, plain_content)
 
     def send_task_created_notification(
         self,
@@ -204,7 +243,7 @@ class EmailService:
         This email was sent by DoneKaro
         """
 
-        return self.send_email(to_email, subject, html_content, plain_content)
+        return self.send_email_sync(to_email, subject, html_content, plain_content)
 
     def send_task_completed_notification(
         self,
@@ -264,7 +303,7 @@ class EmailService:
         This email was sent by DoneKaro
         """
 
-        return self.send_email(to_email, subject, html_content, plain_content)
+        return self.send_email_sync(to_email, subject, html_content, plain_content)
 
     def send_deadline_reminder_urgent(
         self,
@@ -280,37 +319,27 @@ class EmailService:
     ) -> bool:
         """
         Send a Duolingo-style deadline reminder email with urgency-based styling.
-
-        Reminder Schedule (Duolingo-style persistence):
-        - 24 hours (1 day) before deadline - medium urgency
-        - 12 hours before deadline - medium urgency
-        - 6 hours before deadline - high urgency
-        - 3 hours before deadline - high urgency
-        - 1 hour before deadline - critical urgency
-        - Overdue - critical urgency
-
-        Reminders STOP when task is marked as completed.
         """
         from app.models.notification import ReminderLevel
 
         # Urgency-based colors and messaging (Duolingo-inspired)
         urgency_config = {
             "medium": {
-                "header_bg": "#58CC02",  # Duolingo green
+                "header_bg": "#58CC02",
                 "header_text": "Friendly Reminder",
                 "accent_color": "#58CC02",
                 "emoji": "🦉",
                 "gradient": "linear-gradient(135deg, #58CC02 0%, #46a302 100%)",
             },
             "high": {
-                "header_bg": "#FF9600",  # Duolingo orange
+                "header_bg": "#FF9600",
                 "header_text": "Time is Running Out!",
                 "accent_color": "#FF9600",
                 "emoji": "⏰",
                 "gradient": "linear-gradient(135deg, #FF9600 0%, #e68600 100%)",
             },
             "critical": {
-                "header_bg": "#FF4B4B",  # Duolingo red
+                "header_bg": "#FF4B4B",
                 "header_text": "Don't Break Your Streak!",
                 "accent_color": "#FF4B4B",
                 "emoji": "🔥",
@@ -331,7 +360,7 @@ class EmailService:
         else:
             due_time_str = ""
 
-        # Time remaining message with Duolingo-style urgency
+        # Time remaining message
         if hours_remaining <= 0:
             time_msg = "This task is now <strong style='color: #FF4B4B;'>OVERDUE</strong>!"
             time_badge = "OVERDUE"
@@ -367,7 +396,7 @@ class EmailService:
             badge_color = config["accent_color"]
             motivational_msg = "Plan ahead today for a stress-free tomorrow!"
 
-        # Subject line based on urgency (Duolingo-style)
+        # Subject line based on urgency
         if urgency == "critical":
             subject = f"🔥 '{task_title}' needs you NOW - {time_badge}"
         elif urgency == "high":
@@ -382,29 +411,19 @@ class EmailService:
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; line-height: 1.6; color: #3c3c3c; margin: 0; padding: 0; background-color: #f7f7f7; }}
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3c3c3c; margin: 0; padding: 0; background-color: #f7f7f7; }}
                 .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }}
                 .header {{ background: {config['gradient']}; color: white; padding: 40px 20px; text-align: center; }}
-                .header h1 {{ margin: 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }}
-                .header .mascot {{ font-size: 64px; display: block; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }}
+                .header h1 {{ margin: 0; font-size: 28px; font-weight: 800; }}
+                .header .mascot {{ font-size: 64px; display: block; margin-bottom: 15px; }}
                 .content {{ padding: 32px 24px; }}
-                .greeting {{ font-size: 18px; color: #4b4b4b; margin-bottom: 20px; }}
-                .task-card {{ background: linear-gradient(145deg, #ffffff 0%, #f8f8f8 100%); border: 3px solid {config['accent_color']}; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }}
+                .task-card {{ background: #f8f8f8; border: 3px solid {config['accent_color']}; border-radius: 16px; padding: 24px; margin: 24px 0; }}
                 .task-title {{ font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; }}
-                .task-meta {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }}
-                .badge {{ display: inline-block; background: {badge_color}; color: white; padding: 8px 16px; border-radius: 25px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }}
-                .due-info {{ color: #777; font-size: 14px; font-weight: 500; }}
-                .time-warning {{ background: linear-gradient(135deg, #fff8f0 0%, #fff0e0 100%); border-left: 5px solid {config['accent_color']}; padding: 20px; margin: 24px 0; border-radius: 0 12px 12px 0; }}
-                .time-warning p {{ margin: 0; color: #333; font-size: 18px; font-weight: 600; }}
-                .cta-section {{ text-align: center; margin: 32px 0; }}
-                .cta-button {{ display: inline-block; background: {config['gradient']}; color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }}
-                .cta-button:hover {{ transform: translateY(-2px); }}
-                .motivation-box {{ background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 20px; margin-top: 24px; text-align: center; }}
-                .motivation-box p {{ margin: 0; color: #0369a1; font-size: 16px; font-weight: 500; }}
-                .motivation-box .icon {{ font-size: 28px; margin-bottom: 8px; display: block; }}
-                .footer {{ text-align: center; padding: 24px; background-color: #f9fafb; color: #6b7280; font-size: 13px; border-top: 1px solid #e5e7eb; }}
-                .footer strong {{ color: #58CC02; }}
-                .reminder-note {{ background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 12px; color: #92400e; }}
+                .badge {{ display: inline-block; background: {badge_color}; color: white; padding: 8px 16px; border-radius: 25px; font-size: 13px; font-weight: 800; }}
+                .time-warning {{ background: #fff8f0; border-left: 5px solid {config['accent_color']}; padding: 20px; margin: 24px 0; border-radius: 0 12px 12px 0; }}
+                .cta-button {{ display: inline-block; background: {config['gradient']}; color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 18px; }}
+                .motivation-box {{ background: #f0f9ff; border-radius: 12px; padding: 20px; margin-top: 24px; text-align: center; }}
+                .footer {{ text-align: center; padding: 24px; background-color: #f9fafb; color: #6b7280; font-size: 13px; }}
             </style>
         </head>
         <body>
@@ -415,38 +434,25 @@ class EmailService:
                         <h1>{config['header_text']}</h1>
                     </div>
                     <div class="content">
-                        <p class="greeting">Hi{(' ' + user_name) if user_name else ' there'}!</p>
-
+                        <p>Hi{(' ' + user_name) if user_name else ' there'}!</p>
                         <div class="time-warning">
-                            <p>{time_msg}</p>
+                            <p style="margin:0; font-size: 18px; font-weight: 600;">{time_msg}</p>
                         </div>
-
                         <div class="task-card">
                             <div class="task-title">{task_title}</div>
-                            <div class="task-meta">
-                                <span class="badge">{time_badge}</span>
-                                <span class="due-info">Due: {due_date_str}{due_time_str}</span>
-                            </div>
+                            <span class="badge">{time_badge}</span>
+                            <p style="color: #777; margin-top: 12px;">Due: {due_date_str}{due_time_str}</p>
                         </div>
-
-                        <div class="cta-section">
-                            <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="cta-button">
-                                Complete Task Now
-                            </a>
+                        <div style="text-align: center; margin: 32px 0;">
+                            <a href="https://q4-todo-hackathon.vercel.app/dashboard" class="cta-button">Complete Task Now</a>
                         </div>
-
                         <div class="motivation-box">
-                            <span class="icon">💪</span>
-                            <p>{motivational_msg}</p>
-                        </div>
-
-                        <div class="reminder-note">
-                            <strong>Note:</strong> We'll keep sending reminders until you mark this task as complete - just like Duolingo does! Complete it to stop the reminders.
+                            <p style="font-size: 28px; margin-bottom: 8px;">💪</p>
+                            <p style="margin: 0; color: #0369a1;">{motivational_msg}</p>
                         </div>
                     </div>
                     <div class="footer">
-                        <p>Sent with 💚 by <strong>DoneKaro</strong></p>
-                        <p style="margin-top: 8px;">Your productivity companion that won't let you forget!</p>
+                        <p>Sent with 💚 by <strong style="color: #58CC02;">DoneKaro</strong></p>
                     </div>
                 </div>
             </div>
@@ -459,29 +465,19 @@ class EmailService:
 
 Hi{(' ' + user_name) if user_name else ' there'}!
 
-{time_msg.replace('<strong>', '').replace('</strong>', '').replace("<strong style='color: #FF4B4B;'>", '').replace("<strong style='color: #FF9600;'>", '').replace("<strong style='color: #58CC02;'>", '')}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 TASK: {task_title}
 DUE: {due_date_str}{due_time_str}
 STATUS: {time_badge}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {motivational_msg}
 
 Complete your task at: https://q4-todo-hackathon.vercel.app/dashboard
 
 ---
-
-Note: We'll keep sending reminders until you mark this task as complete - just like Duolingo! Complete it to stop the reminders.
-
-Sent with love by DoneKaro
-Your productivity companion that won't let you forget!
+Sent by DoneKaro
         """
 
-        return self.send_email(to_email, subject, html_content, plain_content)
+        return self.send_email_sync(to_email, subject, html_content, plain_content)
 
 
 # Singleton instance

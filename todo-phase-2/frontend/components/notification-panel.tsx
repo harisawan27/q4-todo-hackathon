@@ -23,6 +23,7 @@ import { isNative } from "@/lib/capacitor";
 import {
   initMobileNotifications,
   setupMobileNotificationListeners,
+  showImmediateNotification,
 } from "@/lib/mobile-notifications";
 
 interface NotificationPanelProps {
@@ -330,14 +331,57 @@ export function NotificationBell() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Track seen notification IDs to detect new ones
+  const seenNotificationIds = useRef<Set<string>>(new Set());
+  const isFirstFetch = useRef(true);
+
+  // Show native notification for new notifications on mobile
+  const showNativeNotification = useCallback(async (notification: Notification) => {
+    if (!isNative()) return;
+
+    try {
+      await showImmediateNotification(
+        notification.id,
+        notification.title,
+        notification.message,
+        notification.task_id || undefined
+      );
+      console.log("[NotificationBell] Showed native notification:", notification.title);
+    } catch (err) {
+      console.error("[NotificationBell] Failed to show native notification:", err);
+    }
+  }, []);
+
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const data = await getUnreadCount();
-      setUnreadCount(data.unread_count);
+      // Fetch both count and actual notifications to detect new ones
+      const [countData, notifications] = await Promise.all([
+        getUnreadCount(),
+        getNotifications(true, 10), // Get latest 10 unread
+      ]);
+
+      setUnreadCount(countData.unread_count);
+
+      // Check for new notifications (skip on first fetch to avoid spam on app open)
+      if (!isFirstFetch.current && isNative()) {
+        for (const notification of notifications) {
+          if (!seenNotificationIds.current.has(notification.id)) {
+            // This is a new notification - show it natively!
+            await showNativeNotification(notification);
+          }
+        }
+      }
+
+      // Update seen IDs
+      for (const notification of notifications) {
+        seenNotificationIds.current.add(notification.id);
+      }
+
+      isFirstFetch.current = false;
     } catch (err) {
       console.error("Error fetching unread count:", err);
     }
-  }, []);
+  }, [showNativeNotification]);
 
   // Register for push notifications on mount
   useEffect(() => {
@@ -396,8 +440,8 @@ export function NotificationBell() {
 
   useEffect(() => {
     fetchUnreadCount();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    // Poll for new notifications every 10 seconds for faster native push
+    const interval = setInterval(fetchUnreadCount, 10000);
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
