@@ -16,6 +16,10 @@ build/
 .env.local
 .env.*.local
 
+# Firebase credentials (NEVER commit these!)
+*firebase-adminsdk*.json
+*-firebase-*.json
+
 # IDE
 .vscode/
 .idea/
