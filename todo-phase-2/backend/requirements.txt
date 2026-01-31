@@ -25,6 +25,9 @@ pydantic-settings>=2.6.0
 # Web Push Notifications
 pywebpush>=2.0.0
 
+# Firebase Cloud Messaging (FCM)
+firebase-admin>=6.5.0
+
 # HTTP Client (for FCM)
 httpx>=0.28.0
 

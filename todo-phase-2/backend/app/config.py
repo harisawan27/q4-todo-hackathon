@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     vapid_email: str = "admin@donekaro.com"
     push_enabled: bool = False
 
+    # Firebase Cloud Messaging (FCM) Settings
+    # Download service account JSON from Firebase Console > Project Settings > Service Accounts
+    fcm_credentials_json: str = ""  # JSON string of service account credentials
+    fcm_enabled: bool = True
+
     # AI Chatbot Settings (LiteLLM + Gemini)
     gemini_api_key: str = ""
     llm_model: str = "gemini/gemini-2.5-flash"

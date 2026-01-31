@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "971578232755",
+    "project_id": "central-octane-473814-s0",
+    "storage_bucket": "central-octane-473814-s0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971578232755:android:6b208e0084e6d74cfe85c6",
+        "android_client_info": {
+          "package_name": "com.donekaro.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBND5JuD5A67JQ1hd8mHboR6ain6PhnUAA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

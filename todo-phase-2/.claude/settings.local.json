@@ -45,7 +45,8 @@
       "Bash(README \")",
       "Bash(npm i:*)",
       "Bash(npx web-push:*)",
-      "Bash(python -m uvicorn:*)"
+      "Bash(python -m uvicorn:*)",
+      "Bash(npx cap:*)"
     ]
   }
 }
