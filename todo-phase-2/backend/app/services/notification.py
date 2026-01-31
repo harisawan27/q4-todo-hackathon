@@ -7,6 +7,7 @@ from sqlmodel import Session
 from app.models.notification import Notification, NotificationType
 from app.models.task import Task
 from app.services.webpush import webpush_service
+from app.services.fcm import fcm_service
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +37,21 @@ class NotificationService:
         session.refresh(notification)
         logger.info(f"Created notification: {title} for user {user_id}")
 
-        # Send push notification to all user's devices
+        # Send Web Push notification to all user's devices (browser)
         try:
             push_count = webpush_service.send_to_user(session, user_id, notification)
             if push_count > 0:
-                logger.info(f"Sent push notification to {push_count} device(s)")
+                logger.info(f"Sent Web Push notification to {push_count} device(s)")
         except Exception as e:
-            logger.error(f"Failed to send push notification: {e}")
+            logger.error(f"Failed to send Web Push notification: {e}")
+
+        # Send FCM notification to all user's devices (native apps)
+        try:
+            fcm_count = fcm_service.send_to_user(session, user_id, notification)
+            if fcm_count > 0:
+                logger.info(f"Sent FCM notification to {fcm_count} device(s)")
+        except Exception as e:
+            logger.error(f"Failed to send FCM notification: {e}")
 
         return notification
 
