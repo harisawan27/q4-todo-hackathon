@@ -46,7 +46,9 @@
       "Bash(npm i:*)",
       "Bash(npx web-push:*)",
       "Bash(python -m uvicorn:*)",
-      "Bash(npx cap:*)"
+      "Bash(npx cap:*)",
+      "Bash(grep:*)",
+      "Bash(certutil -encode:*)"
     ]
   }
 }

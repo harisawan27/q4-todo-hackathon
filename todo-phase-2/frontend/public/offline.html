@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3B82F6">
+    <title>DoneKaro - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);
+            color: #ffffff;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 16px;
+        }
+
+        /* Fallback SVG logo if image doesn't load */
+        .logo-fallback {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .logo-container img.hidden {
+            display: none;
+        }
+
+        .logo-container img.hidden + .logo-fallback {
+            display: block;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .message {
+            font-size: 15px;
+            line-height: 1.6;
+            opacity: 0.85;
+            margin-bottom: 32px;
+        }
+
+        .wifi-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .retry-btn:hover,
+        .retry-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.02);
+        }
+
+        .retry-btn:active {
+            transform: scale(0.98);
+        }
+
+        .retry-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 24px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.5; }
+        }
+
+        .wifi-icon {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img
+                src="./android-chrome-192x192.png"
+                alt="DoneKaro Logo"
+                onerror="this.classList.add('hidden')"
+            >
+            <!-- Fallback SVG logo -->
+            <svg class="logo-fallback" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="100" rx="20" fill="white" fill-opacity="0.2"/>
+                <path d="M25 30 L25 75 L75 75 L75 35 L65 25 L25 25 L25 30 Z" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M65 25 L65 35 L75 35" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M35 55 L45 65 L70 40" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <!-- Wifi Off Icon -->
+        <svg class="wifi-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 20h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 16.5a5 5 0 0 1 7 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 12.5a10 10 0 0 1 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M1.5 8.5a14 14 0 0 1 21 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M2 2l20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <h1 class="title">You're Offline</h1>
+        <p class="subtitle">No internet connection</p>
+        <p class="message">
+            DoneKaro needs an internet connection to sync your tasks.
+            Please check your connection and try again.
+        </p>
+
+        <button class="retry-btn" onclick="window.location.reload()">
+            <svg class="retry-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Try Again
+        </button>
+    </div>
+
+    <p class="footer">DoneKaro • Your AI-Powered Todo App</p>
+</body>
+</html>
