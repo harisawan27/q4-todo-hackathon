@@ -171,12 +171,23 @@ class SchedulerService:
     def _determine_reminder_level(self, hours_remaining: float) -> Optional[ReminderLevel]:
         """
         Determine which reminder level should be triggered based on hours remaining.
-        Returns the highest priority (closest to deadline) level that applies.
+        Returns the highest priority (most urgent/closest to deadline) level that applies.
+
+        We iterate through all thresholds and keep the last match, which will be
+        the most specific one (smallest threshold that still applies).
+
+        For example, if 6 hours remain:
+        - 6 <= 24 (DAY_BEFORE) → matches, but continue
+        - 6 <= 12 (HOURS_12) → matches, but continue
+        - 6 <= 6 (HOURS_6) → matches, this is the final answer
+        - 6 <= 3 (HOURS_3) → no match
         """
+        matching_level = None
         for level, threshold_hours in REMINDER_SCHEDULE:
             if hours_remaining <= threshold_hours:
-                return level
-        return None
+                matching_level = level
+                # Continue iterating to find more specific (smaller threshold) match
+        return matching_level
 
     def _process_task_reminders(self, session: Session, task: Task, now: datetime):
         """Process reminders for a single task using Duolingo-style tiered approach"""
@@ -268,19 +279,24 @@ class SchedulerService:
     ) -> bool:
         """Send reminder email with urgency-appropriate styling"""
         try:
+            # Check if email service is enabled
+            if not email_service.enabled:
+                logger.info(f"Email service disabled, skipping email for task {task.id}")
+                return False
+
             # Get user email from auth system
-            # For now, we'll need to look up the user
-            # This would need to be connected to your auth system
             user_email = self._get_user_email(task.user_id)
             if not user_email:
-                logger.warning(f"No email found for user {task.user_id}")
+                logger.warning(f"No email found for user {task.user_id}, skipping email reminder")
                 return False
 
             messages = REMINDER_MESSAGES[level]
             urgency = messages["urgency"]
 
+            logger.info(f"Sending {level.value} email reminder to {user_email} for task '{task.title}'")
+
             # Send urgency-styled email
-            return email_service.send_deadline_reminder_urgent(
+            result = email_service.send_deadline_reminder_urgent(
                 to_email=user_email,
                 user_name=None,  # Could be fetched from user profile
                 task_title=task.title,
@@ -292,24 +308,37 @@ class SchedulerService:
                 reminder_level=level,
             )
 
+            if result:
+                logger.info(f"Email sent successfully to {user_email}")
+            else:
+                logger.warning(f"Email sending returned False for {user_email}")
+
+            return result
+
         except Exception as e:
-            logger.error(f"Error sending reminder email: {e}")
+            logger.error(f"Error sending reminder email for task {task.id}: {e}", exc_info=True)
             return False
 
     def _get_user_email(self, user_id: str) -> Optional[str]:
-        """Get user email from the auth system"""
+        """Get user email from the auth system (Better Auth user table)"""
         try:
             # Query the user table from Better Auth
             with Session(engine) as session:
                 from sqlalchemy import text
                 result = session.execute(
-                    text("SELECT email FROM \"user\" WHERE id = :user_id"),
+                    text('SELECT email FROM "user" WHERE id = :user_id'),
                     {"user_id": user_id}
                 )
                 row = result.fetchone()
-                return row[0] if row else None
+                if row:
+                    email = row[0]
+                    logger.debug(f"Found email {email} for user {user_id}")
+                    return email
+                else:
+                    logger.warning(f"No user found in database with id {user_id}")
+                    return None
         except Exception as e:
-            logger.error(f"Error fetching user email: {e}")
+            logger.error(f"Error fetching user email for {user_id}: {e}", exc_info=True)
             return None
 
 
