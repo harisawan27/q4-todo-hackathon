@@ -23,7 +23,11 @@ class FCMService:
         self.enabled = settings.fcm_enabled and bool(settings.fcm_credentials_json)
         self._initialized = False
 
-        if self.enabled:
+        if not settings.fcm_enabled:
+            logger.info("FCM is disabled via FCM_ENABLED setting")
+        elif not settings.fcm_credentials_json:
+            logger.warning("FCM credentials not configured - FCM_CREDENTIALS_JSON is empty")
+        else:
             self._initialize_firebase()
 
     def _initialize_firebase(self):
@@ -130,11 +134,11 @@ class FCMService:
         if notification.type in ("deadline_approaching", "deadline_passed"):
             channel_id = "deadline-alerts"
 
-        # Prepare data payload
+        # Prepare data payload (FCM requires all values to be strings)
         data = {
-            "notification_id": notification.id or "",
-            "task_id": notification.task_id or "",
-            "type": notification.type or "",
+            "notification_id": str(notification.id) if notification.id else "",
+            "task_id": str(notification.task_id) if notification.task_id else "",
+            "type": str(notification.type) if notification.type else "",
             "click_action": "OPEN_TASK" if notification.task_id else "OPEN_APP",
         }
 
@@ -143,14 +147,12 @@ class FCMService:
 
         for fcm_token in tokens:
             try:
-                message = messaging.Message(
-                    notification=messaging.Notification(
-                        title=notification.title,
-                        body=notification.message,
-                    ),
-                    data=data,
-                    token=fcm_token.token,
-                    android=messaging.AndroidConfig(
+                # Build platform-specific config based on token platform
+                android_config = None
+                webpush_config = None
+
+                if fcm_token.platform == "android":
+                    android_config = messaging.AndroidConfig(
                         priority="high",
                         notification=messaging.AndroidNotification(
                             channel_id=channel_id,
@@ -158,7 +160,32 @@ class FCMService:
                             default_sound=True,
                             default_vibrate_timings=True,
                         ),
+                    )
+                elif fcm_token.platform == "web":
+                    # Web push config for browsers
+                    webpush_config = messaging.WebpushConfig(
+                        notification=messaging.WebpushNotification(
+                            title=notification.title,
+                            body=notification.message,
+                            icon="/android-chrome-192x192.png",
+                            badge="/favicon-32x32.png",
+                            tag=str(notification.id) if notification.id else None,
+                            require_interaction=notification.type in ("deadline_approaching", "deadline_passed"),
+                        ),
+                        fcm_options=messaging.WebpushFCMOptions(
+                            link="/dashboard/tasks" if notification.task_id else "/dashboard"
+                        ),
+                    )
+
+                message = messaging.Message(
+                    notification=messaging.Notification(
+                        title=notification.title,
+                        body=notification.message,
                     ),
+                    data=data,
+                    token=fcm_token.token,
+                    android=android_config,
+                    webpush=webpush_config,
                 )
 
                 response = messaging.send(message)

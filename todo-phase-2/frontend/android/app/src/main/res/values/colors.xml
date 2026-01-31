@@ -3,4 +3,6 @@
     <color name="colorPrimary">#3B82F6</color>
     <color name="colorPrimaryDark">#2563EB</color>
     <color name="colorAccent">#6366F1</color>
+    <!-- FCM Notification Color -->
+    <color name="notification_color">#3B82F6</color>
 </resources>

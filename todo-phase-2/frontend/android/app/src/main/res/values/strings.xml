@@ -5,4 +5,9 @@
     <string name="package_name">com.donekaro.app</string>
     <string name="custom_url_scheme">com.donekaro.app</string>
     <string name="server_client_id">39470081482-sno1ch3sj5qiueb0pk2t8nghtcqf5qde.apps.googleusercontent.com</string>
+
+    <!-- FCM Default Notification Channel -->
+    <string name="default_notification_channel_id">deadline-alerts</string>
+    <string name="default_notification_channel_name">Deadline Alerts</string>
+    <string name="default_notification_channel_description">Important alerts for upcoming and overdue task deadlines</string>
 </resources>
