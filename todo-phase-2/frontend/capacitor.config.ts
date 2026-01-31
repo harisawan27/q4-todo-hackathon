@@ -19,6 +19,8 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
+    // Custom offline error page
+    errorPath: "/offline.html",
   },
   plugins: {
     SplashScreen: {
