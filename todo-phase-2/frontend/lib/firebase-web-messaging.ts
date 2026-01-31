@@ -123,7 +123,7 @@ export async function requestWebPushToken(): Promise<string | null> {
     const token = await getToken(msg, {
       vapidKey,
       serviceWorkerRegistration: await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
+        "/api/firebase-sw"
       ),
     });
 

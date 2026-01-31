@@ -19,6 +19,8 @@ from app.models.notification import (
 )
 from app.services.notification import NotificationService
 from app.services.email import email_service
+from app.services.fcm import fcm_service
+from app.services.webpush import webpush_service
 
 logger = logging.getLogger(__name__)
 
@@ -249,14 +251,31 @@ class SchedulerService:
                 reminder_level=level.value,
             )
             session.add(notification)
+            session.commit()
+            session.refresh(notification)
+
+            # Send push notifications (FCM for mobile, WebPush for browser)
+            try:
+                fcm_count = fcm_service.send_to_user(session, task.user_id, notification)
+                if fcm_count > 0:
+                    logger.info(f"Sent FCM push to {fcm_count} device(s) for task {task.id}")
+            except Exception as e:
+                logger.error(f"Failed to send FCM notification: {e}")
+
+            try:
+                webpush_count = webpush_service.send_to_user(session, task.user_id, notification)
+                if webpush_count > 0:
+                    logger.info(f"Sent WebPush to {webpush_count} device(s) for task {task.id}")
+            except Exception as e:
+                logger.error(f"Failed to send WebPush notification: {e}")
 
             # Send email reminder
             email_sent = self._send_reminder_email(task, level, hours_remaining)
 
             if email_sent:
                 notification.email_sent = True
-
-            session.commit()
+                session.add(notification)
+                session.commit()
 
             due_str = f"{task.due_date}"
             if task.due_time:
