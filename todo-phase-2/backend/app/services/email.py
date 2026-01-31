@@ -84,7 +84,6 @@ class EmailService:
             logger.error(f"Failed to send email to {to_email}: {e}")
             return False
 
-    # Synchronous wrapper for backwards compatibility with scheduler
     def send_email_sync(
         self,
         to_email: str,
@@ -92,26 +91,45 @@ class EmailService:
         html_content: str,
         plain_content: Optional[str] = None,
     ) -> bool:
-        """Synchronous version of send_email for use in scheduler"""
-        import asyncio
+        """
+        Synchronous version of send_email for use in scheduler.
+        Uses httpx sync client directly to avoid async event loop issues.
+        """
+        if not self.enabled:
+            logger.info(f"Email disabled. Would send to {to_email}: {subject}")
+            return False
 
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # We're in an async context, create a new task
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        asyncio.run,
-                        self.send_email(to_email, subject, html_content, plain_content)
-                    )
-                    return future.result(timeout=15)
+            # Use synchronous httpx client directly - no async wrapper needed
+            response = httpx.post(
+                self.RESEND_API_URL,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": self.from_email,
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_content,
+                    "text": plain_content,
+                },
+                timeout=10.0,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"Email sent successfully to {to_email}, id: {result.get('id')}")
+                return True
             else:
-                return loop.run_until_complete(
-                    self.send_email(to_email, subject, html_content, plain_content)
-                )
+                logger.error(f"Resend API error {response.status_code}: {response.text}")
+                return False
+
+        except httpx.TimeoutException:
+            logger.error(f"Email request timed out for {to_email}")
+            return False
         except Exception as e:
-            logger.error(f"Sync email send failed: {e}")
+            logger.error(f"Sync email send failed to {to_email}: {e}")
             return False
 
     def send_deadline_reminder(
