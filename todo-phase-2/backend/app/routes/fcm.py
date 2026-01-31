@@ -4,11 +4,13 @@ import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.auth.jwt_bearer import CurrentUser, get_current_user
 from app.database import get_session
 from app.models.fcm_token import FCMToken, FCMTokenCreate, FCMTokenResponse
+from app.services.fcm import fcm_service
 
 logger = logging.getLogger(__name__)
 
@@ -105,3 +107,65 @@ async def clear_all_tokens(
     session.commit()
     logger.info(f"Cleared {count} FCM tokens for user {current_user.user_id}")
     return {"message": f"Cleared {count} FCM token(s)"}
+
+
+class TestNotificationRequest(BaseModel):
+    title: str = "Test Notification"
+    body: str = "This is a test push notification from DoneKaro!"
+
+
+@router.post("/test")
+async def test_fcm_notification(
+    request: TestNotificationRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """
+    Send a test FCM notification to all registered devices for current user.
+    Use this to verify FCM is working correctly.
+    """
+    # Check if FCM is enabled
+    if not fcm_service.enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="FCM is not enabled. Check FCM_CREDENTIALS_JSON environment variable."
+        )
+
+    # Get all FCM tokens for user
+    statement = select(FCMToken).where(FCMToken.user_id == current_user.user_id)
+    tokens = session.exec(statement).all()
+
+    if not tokens:
+        raise HTTPException(
+            status_code=404,
+            detail="No FCM tokens registered. Open the app on your device first."
+        )
+
+    # Send test notification to each token
+    success_count = 0
+    failed_tokens = []
+
+    for fcm_token in tokens:
+        result = fcm_service.send_notification(
+            token=fcm_token.token,
+            title=request.title,
+            body=request.body,
+            data={
+                "type": "test",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            channel_id="task-updates",
+        )
+        if result:
+            success_count += 1
+        else:
+            failed_tokens.append(fcm_token.id)
+
+    logger.info(f"Test notification: {success_count}/{len(tokens)} sent for user {current_user.user_id}")
+
+    return {
+        "message": f"Test notification sent to {success_count}/{len(tokens)} device(s)",
+        "success_count": success_count,
+        "total_tokens": len(tokens),
+        "failed_token_ids": failed_tokens,
+    }

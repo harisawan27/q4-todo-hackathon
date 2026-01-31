@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRequireAuth } from "@/lib/auth-client";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { initCapacitor, isNative } from "@/lib/capacitor";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +14,23 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { isPending, isAuthenticated } = useRequireAuth();
+  const fcmInitialized = useRef(false);
+
+  // Initialize FCM when user is authenticated (only once)
+  useEffect(() => {
+    if (isAuthenticated && !fcmInitialized.current) {
+      fcmInitialized.current = true;
+
+      // Initialize Capacitor plugins including FCM
+      initCapacitor().then(() => {
+        if (isNative()) {
+          console.log("[Dashboard] Capacitor initialized with FCM");
+        }
+      }).catch((err) => {
+        console.error("[Dashboard] Failed to initialize Capacitor:", err);
+      });
+    }
+  }, [isAuthenticated]);
 
   if (isPending) {
     return (

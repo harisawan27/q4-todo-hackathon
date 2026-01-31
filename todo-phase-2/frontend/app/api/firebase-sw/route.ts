@@ -1,22 +1,32 @@
+import { NextResponse } from "next/server";
+
+/**
+ * Dynamically serve the Firebase Messaging Service Worker
+ * This injects environment variables at runtime, avoiding hardcoded secrets
+ */
+export async function GET() {
+  const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  };
+
+  const serviceWorkerCode = `
 /**
  * Firebase Cloud Messaging Service Worker
  * Handles background push notifications for web
+ * Config injected at runtime from environment variables
  */
 
 // Import Firebase scripts for Service Worker
 importScripts("https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js");
 
-// Initialize Firebase with your config
-// These values are from google-services.json
-firebase.initializeApp({
-  apiKey: "AIzaSyBND5JuD5A67JQ1hd8mHboR6ain6PhnUAA",
-  authDomain: "central-octane-473814-s0.firebaseapp.com",
-  projectId: "central-octane-473814-s0",
-  storageBucket: "central-octane-473814-s0.firebasestorage.app",
-  messagingSenderId: "971578232755",
-  appId: "1:971578232755:android:6b208e0084e6d74cfe85c6",
-});
+// Initialize Firebase with config from server
+firebase.initializeApp(${JSON.stringify(firebaseConfig)});
 
 const messaging = firebase.messaging();
 
@@ -95,3 +105,13 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 console.log("[FCM SW] Firebase Messaging Service Worker loaded");
+`;
+
+  return new NextResponse(serviceWorkerCode, {
+    headers: {
+      "Content-Type": "application/javascript",
+      "Service-Worker-Allowed": "/",
+      "Cache-Control": "public, max-age=0, must-revalidate",
+    },
+  });
+}
