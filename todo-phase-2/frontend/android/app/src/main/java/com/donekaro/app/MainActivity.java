@@ -9,5 +9,7 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(GoogleAuth.class);
         super.onCreate(savedInstanceState);
+        // Note: Notification channels are created in MainApplication.onCreate()
+        // to ensure they exist before any FCM messages arrive
     }
 }
