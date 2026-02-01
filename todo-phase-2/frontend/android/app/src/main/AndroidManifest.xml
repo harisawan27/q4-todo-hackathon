@@ -20,6 +20,16 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/notification_color" />
 
+        <!-- Custom FCM Messaging Service for handling background notifications -->
+        <!-- This ensures notifications are shown even when app is killed -->
+        <service
+            android:name=".DoneKaroMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"

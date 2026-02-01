@@ -155,6 +155,7 @@ async def test_fcm_notification(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             channel_id="task-updates",
+            platform=fcm_token.platform or "android",
         )
         if result:
             success_count += 1

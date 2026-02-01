@@ -26,9 +26,16 @@ class FCMService:
         if not settings.fcm_enabled:
             logger.info("FCM is disabled via FCM_ENABLED setting")
         elif not settings.fcm_credentials_json:
-            logger.warning("FCM credentials not configured - FCM_CREDENTIALS_JSON is empty")
+            logger.warning("FCM credentials not configured - FCM_CREDENTIALS_JSON is empty. "
+                          "Native push notifications will not work.")
         else:
             self._initialize_firebase()
+
+        # Log final status
+        if self.enabled:
+            logger.info("FCM Service initialized and ENABLED - native push notifications will work")
+        else:
+            logger.warning("FCM Service is DISABLED - native push notifications will NOT be sent")
 
     def _initialize_firebase(self):
         """Initialize Firebase Admin SDK"""
@@ -65,38 +72,55 @@ class FCMService:
         body: str,
         data: Optional[dict] = None,
         channel_id: str = "task-updates",
+        platform: str = "android",
     ) -> bool:
         """
         Send a push notification to a specific FCM token.
         Returns True if successful, False otherwise.
+
+        For Android: Uses data-only messages for reliable background delivery.
+        For Web: Uses notification+data for proper browser handling.
         """
         if not self.enabled:
             logger.debug("FCM disabled, skipping notification")
             return False
 
         try:
-            # Build the message
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title=title,
-                    body=body,
-                ),
-                data=data or {},
-                token=token,
-                android=messaging.AndroidConfig(
-                    priority="high",
-                    notification=messaging.AndroidNotification(
-                        channel_id=channel_id,
+            # Prepare data payload with title and body included
+            full_data = {
+                "title": title,
+                "body": body,
+                "message": body,
+                "channel_id": channel_id,
+                **(data or {}),
+            }
+            # Ensure all values are strings (FCM requirement)
+            full_data = {k: str(v) if v is not None else "" for k, v in full_data.items()}
+
+            if platform == "android":
+                # Data-only message for Android - ensures onMessageReceived is called
+                message = messaging.Message(
+                    data=full_data,
+                    token=token,
+                    android=messaging.AndroidConfig(
                         priority="high",
-                        default_sound=True,
-                        default_vibrate_timings=True,
+                        ttl=2419200,
                     ),
-                ),
-            )
+                )
+            else:
+                # Notification+data for web
+                message = messaging.Message(
+                    notification=messaging.Notification(
+                        title=title,
+                        body=body,
+                    ),
+                    data=full_data,
+                    token=token,
+                )
 
             # Send the message
             response = messaging.send(message)
-            logger.info(f"FCM notification sent successfully: {response}")
+            logger.info(f"FCM notification sent successfully to {platform}: {response}")
             return True
         except messaging.UnregisteredError:
             logger.warning(f"FCM token is unregistered/invalid: {token[:20]}...")
@@ -117,8 +141,14 @@ class FCMService:
         """
         Send push notification to all FCM tokens for a user.
         Returns the number of successful deliveries.
+
+        For Android: Uses data-only messages so our custom MessagingService
+        always receives them (even when app is killed) and can show notifications.
+
+        For Web: Uses notification+data for proper browser push display.
         """
         if not self.enabled:
+            logger.debug("FCM is disabled, skipping push notification")
             return 0
 
         # Get all FCM tokens for user
@@ -135,11 +165,16 @@ class FCMService:
             channel_id = "deadline-alerts"
 
         # Prepare data payload (FCM requires all values to be strings)
+        # Include title and message in data for Android data-only messages
         data = {
             "notification_id": str(notification.id) if notification.id else "",
             "task_id": str(notification.task_id) if notification.task_id else "",
             "type": str(notification.type) if notification.type else "",
             "click_action": "OPEN_TASK" if notification.task_id else "OPEN_APP",
+            "title": notification.title or "DoneKaro",
+            "message": notification.message or "",
+            "body": notification.message or "",
+            "channel_id": channel_id,
         }
 
         success_count = 0
@@ -147,22 +182,21 @@ class FCMService:
 
         for fcm_token in tokens:
             try:
-                # Build platform-specific config based on token platform
-                android_config = None
-                webpush_config = None
-
                 if fcm_token.platform == "android":
-                    android_config = messaging.AndroidConfig(
-                        priority="high",
-                        notification=messaging.AndroidNotification(
-                            channel_id=channel_id,
+                    # For Android: Use DATA-ONLY message
+                    # This ensures onMessageReceived() is ALWAYS called,
+                    # even when app is in background or killed.
+                    # Our custom DoneKaroMessagingService will show the notification.
+                    message = messaging.Message(
+                        data=data,
+                        token=fcm_token.token,
+                        android=messaging.AndroidConfig(
                             priority="high",
-                            default_sound=True,
-                            default_vibrate_timings=True,
+                            ttl=2419200,
                         ),
                     )
-                elif fcm_token.platform == "web":
-                    # Web push config for browsers
+                else:
+                    # For Web: Use notification+data for proper browser push
                     webpush_config = messaging.WebpushConfig(
                         notification=messaging.WebpushNotification(
                             title=notification.title,
@@ -177,23 +211,24 @@ class FCMService:
                         ),
                     )
 
-                message = messaging.Message(
-                    notification=messaging.Notification(
-                        title=notification.title,
-                        body=notification.message,
-                    ),
-                    data=data,
-                    token=fcm_token.token,
-                    android=android_config,
-                    webpush=webpush_config,
-                )
+                    message = messaging.Message(
+                        notification=messaging.Notification(
+                            title=notification.title,
+                            body=notification.message,
+                        ),
+                        data=data,
+                        token=fcm_token.token,
+                        webpush=webpush_config,
+                    )
 
                 response = messaging.send(message)
-                logger.info(f"FCM sent to {fcm_token.platform}: {response}")
+                logger.info(f"FCM sent to {fcm_token.platform} device: {response}")
                 success_count += 1
             except messaging.UnregisteredError:
                 logger.warning(f"Invalid FCM token, marking for removal: {fcm_token.id}")
                 invalid_tokens.append(fcm_token)
+            except messaging.SenderIdMismatchError:
+                logger.error(f"FCM sender ID mismatch for token {fcm_token.id} - check Firebase project config")
             except Exception as e:
                 logger.error(f"FCM send failed for token {fcm_token.id}: {e}")
 
