@@ -26,7 +26,9 @@
       "Bash(python -m uvicorn:*)",
       "Bash(ping:*)",
       "Bash(.venvScriptsactivate)",
-      "Bash(uvicorn app.main:app:*)"
+      "Bash(uvicorn app.main:app:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build)"
     ]
   }
 }

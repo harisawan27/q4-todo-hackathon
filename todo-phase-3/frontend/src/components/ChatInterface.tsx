@@ -1,89 +1,115 @@
 'use client';
 
-import { useState, useRef, useEffect, FormEvent, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { X, Send, Loader2, Bot, User, Sparkles } from 'lucide-react';
 import { sendMessage, ChatResponse } from '@/lib/api';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
+  timestamp?: Date;
+}
+
+// Avatar components
+function AssistantAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12',
+  };
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6',
+  };
+  return (
+    <div className={`${sizeClasses[size]} flex items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md`}>
+      <Bot className={`${iconSizes[size]} text-white`} />
+    </div>
+  );
+}
+
+function UserAvatar({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12',
+  };
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6',
+  };
+  return (
+    <div className={`${sizeClasses[size]} flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md`}>
+      <User className={`${iconSizes[size]} text-white`} />
+    </div>
+  );
 }
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: "Hi! I'm DoneKaro AI, your personal task assistant. I can help you manage tasks. Try:\n• \"Show me my tasks\"\n• \"Add a task: Buy groceries\"\n• \"Mark [task] as done\"",
+      timestamp: new Date(),
+    },
+  ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const userId = process.env.NEXT_PUBLIC_USER_ID || 'default-user';
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
-  // Add welcome message on first load
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: 'welcome',
-          role: 'assistant',
-          content: "Hello! I'm your Todo assistant. You can ask me to:\n\n• Show your tasks\n• Add a new task\n• Mark tasks as complete\n• Update or delete tasks\n\nHow can I help you today?",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  }, []);
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    const trimmedInput = input.trim();
-    if (!trimmedInput || isLoading) return;
-
-    // Add user message
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: Date.now().toString(),
       role: 'user',
-      content: trimmedInput,
+      content: input.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
-    setError(null);
     setIsLoading(true);
 
     try {
       const response: ChatResponse = await sendMessage(
         userId,
-        trimmedInput,
+        userMessage.content,
         conversationId
       );
 
-      // Save conversation ID for future messages
       setConversationId(response.conversation_id);
 
-      // Add assistant response
       const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
+        id: Date.now().toString() + '-assistant',
         role: 'assistant',
         content: response.response,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-      // Add error message to chat
+    } catch (error) {
+      console.error('Chat error:', error);
       const errorMessage: Message = {
-        id: `error-${Date.now()}`,
+        id: Date.now().toString() + '-error',
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: "Sorry, I couldn't process your request. Please try again.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -92,99 +118,144 @@ export default function ChatInterface() {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as unknown as FormEvent);
+      handleSendMessage();
     }
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-3xl mx-auto bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-800">Todo AI Chatbot</h1>
-        <p className="text-sm text-gray-500">Manage your tasks with natural language</p>
-      </header>
-
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-800'
-              }`}
-            >
-              <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-              <p
-                className={`text-xs mt-1 ${
-                  message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
-                }`}
-              >
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
+    <>
+      {/* Chat Toggle Button - AI Agent Avatar */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl ${
+          isOpen
+            ? 'bg-gray-200 dark:bg-gray-700'
+            : 'bg-gradient-to-br from-blue-600 to-indigo-600'
+        }`}
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
+      >
+        {isOpen ? (
+          <X className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+        ) : (
+          <div className="relative">
+            <Bot className="h-7 w-7 text-white" />
+            <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-300 animate-pulse" />
           </div>
-        ))}
+        )}
+      </button>
 
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+      {/* Chat Panel */}
+      {isOpen && (
+        <div className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 left-2 sm:left-auto z-50 flex h-[calc(100vh-6rem)] sm:h-[520px] w-auto sm:w-[400px] max-h-[600px] flex-col rounded-2xl border bg-background shadow-2xl overflow-hidden animate-chat-panel-enter">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b bg-gradient-to-r from-blue-500/10 to-indigo-500/10 px-3 sm:px-4 py-3 sm:py-4">
+            <AssistantAvatar size="md" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">DoneKaro AI</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                <p className="text-xs text-muted-foreground">Online • Ready to help</p>
               </div>
             </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Close chat"
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
           </div>
-        )}
 
-        {/* Error display */}
-        {error && (
-          <div className="flex justify-center">
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
-              <p className="text-red-600 text-sm">{error}</p>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex gap-3 ${
+                  message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                }`}
+              >
+                {/* Avatar */}
+                <div className="flex-shrink-0 mt-1">
+                  {message.role === 'user' ? (
+                    <UserAvatar size="sm" />
+                  ) : (
+                    <AssistantAvatar size="sm" />
+                  )}
+                </div>
+
+                {/* Message Bubble */}
+                <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} min-w-0 flex-1`}>
+                  <div
+                    className={`max-w-full sm:max-w-[280px] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-br-md'
+                        : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-bl-md'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  </div>
+                  {message.timestamp && (
+                    <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 mt-1">
+                  <AssistantAvatar size="sm" />
+                </div>
+                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 py-3 shadow-sm">
+                  <div className="flex gap-1">
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                  <span className="text-sm text-muted-foreground ml-1">Thinking...</span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t bg-background p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Ask me anything..."
+                className="flex-1 min-w-0 rounded-full border border-gray-200 dark:border-gray-700 bg-muted/50 px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                disabled={isLoading}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!input.trim() || isLoading}
+                className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-md"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
             </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-2 hidden sm:block">
+              DoneKaro AI • Get things done faster
+            </p>
           </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white border-t border-gray-200 px-4 py-4"
-      >
-        <div className="flex items-end space-x-3">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message... (Press Enter to send)"
-            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-32"
-            rows={1}
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="bg-blue-600 text-white rounded-xl px-6 py-3 text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? 'Sending...' : 'Send'}
-          </button>
         </div>
-      </form>
-    </div>
+      )}
+    </>
   );
 }
