@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b \"F:\\\\q4-todo-hackathon\\\\todo-phase-3\")",
+      "Bash(git fetch:*)",
+      "Bash(powershell:*)",
+      "Bash(dir /s /b \"F:\\\\q4-todo-hackathon\\\\specs\\\\001-cloud-native-chatbot\\\\*\")",
+      "Bash(echo:*)"
+    ]
+  }
+}
