@@ -371,6 +371,7 @@ def run_agent(user_id: str, message: str, conversation_id: Optional[str] = None)
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
+            timeout=30,  # 30 second timeout
         )
 
         assistant_message = response.choices[0].message
@@ -416,6 +417,7 @@ def run_agent(user_id: str, message: str, conversation_id: Optional[str] = None)
                 messages=messages,
                 tools=TOOLS,
                 tool_choice="auto",
+                timeout=30,  # 30 second timeout
             )
             assistant_message = response.choices[0].message
 
@@ -423,7 +425,9 @@ def run_agent(user_id: str, message: str, conversation_id: Optional[str] = None)
         response_content = assistant_message.content or "I processed your request."
 
     except Exception as e:
+        import traceback
         logger.error(f"Agent error: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         response_content = "I'm sorry, I encountered an error processing your request. Please try again."
 
     # Step 4: Store assistant response

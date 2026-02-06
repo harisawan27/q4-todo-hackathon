@@ -26,10 +26,10 @@
 
 **Purpose**: Project initialization and directory structure verification
 
-- [ ] T001 Verify backend source code exists in backend/app/main.py
-- [ ] T002 Verify frontend source code exists in frontend/src/app/page.tsx
-- [ ] T003 [P] Create charts/chatbot/ directory structure for Helm charts
-- [ ] T004 [P] Create charts/chatbot/templates/ directory for K8s manifests
+- [X] T001 Verify backend source code exists in backend/app/main.py
+- [X] T002 Verify frontend source code exists in frontend/src/app/page.tsx
+- [X] T003 [P] Create charts/chatbot/ directory structure for Helm charts
+- [X] T004 [P] Create charts/chatbot/templates/ directory for K8s manifests
 
 ---
 
@@ -39,13 +39,13 @@
 
 **Why Foundational**: Docker images are required for all Kubernetes deployments. Without container images, nothing can be deployed to Minikube.
 
-- [ ] T005 Generate backend/.dockerignore with exclusions for __pycache__, .env, .git, venv, .pytest_cache, .mypy_cache
-- [ ] T006 Generate backend/Dockerfile with multi-stage build for Python FastAPI (base python:3.10-slim, non-root user, port 8001, health check)
+- [X] T005 Generate backend/.dockerignore with exclusions for __pycache__, .env, .git, venv, .pytest_cache, .mypy_cache
+- [X] T006 Generate backend/Dockerfile with multi-stage build for Python FastAPI (base python:3.10-slim, non-root user, port 8001, health check)
 - [ ] T007 Verify backend Dockerfile builds successfully with `docker build -t chatbot-backend:local ./backend`
-- [ ] T008 [P] Generate frontend/.dockerignore with exclusions for node_modules, .next, .git, .env.local, .env
-- [ ] T009 [P] Generate frontend/Dockerfile with 3-stage build for Next.js 16 (node:18-alpine, non-root user, port 3000, standalone output)
+- [X] T008 [P] Generate frontend/.dockerignore with exclusions for node_modules, .next, .git, .env.local, .env
+- [X] T009 [P] Generate frontend/Dockerfile with 3-stage build for Next.js 16 (node:18-alpine, non-root user, port 3000, standalone output)
 - [ ] T010 Verify frontend Dockerfile builds successfully with `docker build -t chatbot-frontend:local ./frontend`
-- [ ] T011 Create docker-compose.yml at repo root for local multi-container integration testing
+- [X] T011 Create docker-compose.yml at repo root for local multi-container integration testing
 - [ ] T012 Verify combined Docker image size is under 500MB (chatbot-backend + chatbot-frontend)
 
 **Checkpoint**: Foundation ready - container images built and verified. User story implementation can now begin.
@@ -62,8 +62,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Document Gordon CLI usage for backend Dockerfile generation in specs/001-cloud-native-chatbot/quickstart.md
-- [ ] T014 [US2] Document Gordon CLI usage for frontend Dockerfile generation in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T013 [US2] Document Gordon CLI usage for backend Dockerfile generation in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T014 [US2] Document Gordon CLI usage for frontend Dockerfile generation in specs/001-cloud-native-chatbot/quickstart.md
 - [ ] T015 [US2] Test backend container locally: `docker run -p 8001:8001 --env-file backend/.env.example chatbot-backend:local`
 - [ ] T016 [US2] Verify backend health endpoint responds: `curl http://localhost:8001/health`
 - [ ] T017 [US2] Test frontend container locally: `docker run -p 3000:3000 chatbot-frontend:local`
@@ -84,15 +84,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [P] [US3] Create charts/chatbot/Chart.yaml with name=chatbot, version=0.1.0, appVersion=1.0.0
-- [ ] T021 [P] [US3] Create charts/chatbot/templates/_helpers.tpl with common label templates
-- [ ] T022 [US3] Create charts/chatbot/values.yaml with configurable parameters for both services
-- [ ] T023 [P] [US3] Create charts/chatbot/templates/backend-deployment.yaml with Deployment spec (replicas, image, env from secrets/configmap, probes, resources)
-- [ ] T024 [P] [US3] Create charts/chatbot/templates/backend-service.yaml with ClusterIP Service spec (port 8001)
-- [ ] T025 [P] [US3] Create charts/chatbot/templates/frontend-deployment.yaml with Deployment spec (replicas, image, env from configmap, probes, resources)
-- [ ] T026 [P] [US3] Create charts/chatbot/templates/frontend-service.yaml with NodePort Service spec (port 3000)
-- [ ] T027 [US3] Create charts/chatbot/templates/configmap.yaml with non-sensitive config (NEXT_PUBLIC_API_URL, LLM_MODEL)
-- [ ] T028 [US3] Create charts/chatbot/templates/secrets.yaml with placeholder template for GEMINI_API_KEY, DATABASE_URL
+- [X] T020 [P] [US3] Create charts/chatbot/Chart.yaml with name=chatbot, version=0.1.0, appVersion=1.0.0
+- [X] T021 [P] [US3] Create charts/chatbot/templates/_helpers.tpl with common label templates
+- [X] T022 [US3] Create charts/chatbot/values.yaml with configurable parameters for both services
+- [X] T023 [P] [US3] Create charts/chatbot/templates/backend-deployment.yaml with Deployment spec (replicas, image, env from secrets/configmap, probes, resources)
+- [X] T024 [P] [US3] Create charts/chatbot/templates/backend-service.yaml with ClusterIP Service spec (port 8001)
+- [X] T025 [P] [US3] Create charts/chatbot/templates/frontend-deployment.yaml with Deployment spec (replicas, image, env from configmap, probes, resources)
+- [X] T026 [P] [US3] Create charts/chatbot/templates/frontend-service.yaml with NodePort Service spec (port 3000)
+- [X] T027 [US3] Create charts/chatbot/templates/configmap.yaml with non-sensitive config (NEXT_PUBLIC_API_URL, LLM_MODEL)
+- [X] T028 [US3] Create charts/chatbot/templates/secrets.yaml with placeholder template for GEMINI_API_KEY, DATABASE_URL
 - [ ] T029 [US3] Validate Helm chart with `helm lint ./charts/chatbot`
 - [ ] T030 [US3] Generate YAML output with `helm template chatbot ./charts/chatbot` and verify validity
 
@@ -110,11 +110,11 @@
 
 ### Implementation for User Story 6
 
-- [ ] T031 [US6] Document Secret creation command in specs/001-cloud-native-chatbot/quickstart.md
-- [ ] T032 [US6] Create k8s/secrets-example.yaml template showing Secret structure (without actual values)
-- [ ] T033 [US6] Update charts/chatbot/values.yaml with secretRef configuration for backend deployment
-- [ ] T034 [US6] Update charts/chatbot/templates/backend-deployment.yaml to mount secrets as environment variables
-- [ ] T035 [US6] Update charts/chatbot/templates/frontend-deployment.yaml to read NEXT_PUBLIC_API_URL from ConfigMap
+- [X] T031 [US6] Document Secret creation command in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T032 [US6] Create k8s/secrets-example.yaml template showing Secret structure (without actual values)
+- [X] T033 [US6] Update charts/chatbot/values.yaml with secretRef configuration for backend deployment
+- [X] T034 [US6] Update charts/chatbot/templates/backend-deployment.yaml to mount secrets as environment variables
+- [X] T035 [US6] Update charts/chatbot/templates/frontend-deployment.yaml to read NEXT_PUBLIC_API_URL from ConfigMap
 
 **Checkpoint**: User Story 6 complete - environment variables configured securely via Secrets and ConfigMaps
 
@@ -155,8 +155,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T046 [P] [US4] Document kubectl-ai installation in specs/001-cloud-native-chatbot/quickstart.md
-- [ ] T047 [P] [US4] Document kubectl-ai example prompts in specs/001-cloud-native-chatbot/quickstart.md (show pods, describe deployment, get logs)
+- [X] T046 [P] [US4] Document kubectl-ai installation in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T047 [P] [US4] Document kubectl-ai example prompts in specs/001-cloud-native-chatbot/quickstart.md (show pods, describe deployment, get logs)
 - [ ] T048 [US4] Test kubectl-ai: "show me all chatbot pods" and verify correct kubectl translation
 - [ ] T049 [US4] Test kubectl-ai: "what's the status of the backend deployment" and verify diagnostic output
 
@@ -174,8 +174,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T050 [P] [US5] Document Kagent installation in specs/001-cloud-native-chatbot/quickstart.md
-- [ ] T051 [P] [US5] Document Kagent usage examples in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T050 [P] [US5] Document Kagent installation in specs/001-cloud-native-chatbot/quickstart.md
+- [X] T051 [P] [US5] Document Kagent usage examples in specs/001-cloud-native-chatbot/quickstart.md
 - [ ] T052 [US5] Test Kagent cluster health query and verify node/pod status report
 - [ ] T053 [US5] Test Kagent service health query for chatbot frontend and backend
 
@@ -187,8 +187,8 @@
 
 **Purpose**: Documentation completion and final verification
 
-- [ ] T054 [P] Update specs/001-cloud-native-chatbot/quickstart.md with complete deployment workflow
-- [ ] T055 [P] Create README.md section documenting the cloud-native architecture
+- [X] T054 [P] Update specs/001-cloud-native-chatbot/quickstart.md with complete deployment workflow
+- [X] T055 [P] Create README.md section documenting the cloud-native architecture
 - [ ] T056 Verify all 8 success criteria (SC-001 to SC-008) are met
 - [ ] T057 Test rolling update: change image tag and run `helm upgrade chatbot ./charts/chatbot`
 - [ ] T058 Verify rolling update completes without service downtime

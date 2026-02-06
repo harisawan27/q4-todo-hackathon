@@ -1,0 +1,17 @@
+apiVersion: v2
+name: chatbot
+description: Cloud-Native AI Chatbot - Helm chart for deploying frontend and backend services
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - chatbot
+  - ai
+  - kubernetes
+  - fastapi
+  - nextjs
+maintainers:
+  - name: GIAIC Phase 4
+home: https://github.com/your-repo/todo-phase-4
+sources:
+  - https://github.com/your-repo/todo-phase-4

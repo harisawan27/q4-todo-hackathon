@@ -1,0 +1,145 @@
+# =============================================================================
+# Root .gitignore for Cloud-Native AI Chatbot
+# =============================================================================
+
+# Environment files (NEVER commit secrets)
+.env
+.env.*
+*.env
+secrets.env
+!.env.example
+!.env.template
+
+# =============================================================================
+# Python / Backend
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# =============================================================================
+# Node.js / Frontend
+# =============================================================================
+node_modules/
+.pnp/
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js
+.next/
+out/
+
+# Build output
+build/
+dist/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# =============================================================================
+# IDE / Editor
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+
+# =============================================================================
+# OS Files
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# Docker
+# =============================================================================
+# Don't ignore Dockerfiles - they should be committed
+# docker-compose.override.yml
+
+# =============================================================================
+# Kubernetes / Helm
+# =============================================================================
+# Don't ignore charts - they should be committed
+# Ignore generated secrets (actual values)
+k8s/secrets*.yaml
+!k8s/secrets-example.yaml
+
+# Helm dependencies
+charts/*/charts/
+*.tgz
+
+# =============================================================================
+# Logs
+# =============================================================================
+*.log
+logs/
+
+# =============================================================================
+# Temporary files
+# =============================================================================
+*.tmp
+*.temp
+tmp/
+temp/

@@ -21,8 +21,8 @@ def get_session() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    """Initialize database tables (Phase 3 tables only)"""
+    """Initialize database tables"""
     # Import models to register them with SQLModel
-    from .models import Conversation, Message  # noqa: F401
+    from .models import Conversation, Message, Task  # noqa: F401
 
     SQLModel.metadata.create_all(engine)

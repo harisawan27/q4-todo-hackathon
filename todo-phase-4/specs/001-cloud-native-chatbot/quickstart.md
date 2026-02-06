@@ -259,15 +259,105 @@ kubectl top pods
 kubectl exec -it <pod-name> -- /bin/sh
 ```
 
-## AI-Assisted Commands (Optional)
+## AI-Assisted Development (Optional)
 
-If kubectl-ai is installed:
+### Gordon (Docker AI) - Dockerfile Generation
 
+Gordon is Docker's built-in AI assistant for container development. It can generate and optimize Dockerfiles.
+
+**Installation**: Built into Docker Desktop (version 4.25+)
+
+**Usage for Backend**:
 ```bash
-# Natural language queries
+# In Docker Desktop terminal or via CLI
+docker ai "Generate a Dockerfile for this Python FastAPI project in ./backend"
+
+# Or using Gordon directly
+gordon ask "Create a multi-stage Dockerfile for Python 3.10 FastAPI app with uvicorn"
+```
+
+**Usage for Frontend**:
+```bash
+docker ai "Generate a Dockerfile for this Next.js 16 project in ./frontend with standalone output"
+
+gordon ask "Create a 3-stage Dockerfile for Node.js 18 Next.js app with non-root user"
+```
+
+**Fallback**: If Gordon is unavailable, use the pre-generated Dockerfiles in `backend/Dockerfile` and `frontend/Dockerfile`.
+
+### kubectl-ai - Natural Language Kubernetes Management
+
+kubectl-ai translates natural language to kubectl commands, simplifying cluster management.
+
+**Installation**:
+```bash
+# Via Go
+go install github.com/sozercan/kubectl-ai@latest
+
+# Or download binary from GitHub releases
+# https://github.com/sozercan/kubectl-ai/releases
+```
+
+**Example Prompts**:
+```bash
+# Show pod status
+kubectl-ai "show me all chatbot pods"
 kubectl-ai "show me all pods that are not running"
-kubectl-ai "why is my backend pod failing"
-kubectl-ai "show me the logs for the frontend"
+
+# Describe deployments
+kubectl-ai "what's the status of the backend deployment"
+kubectl-ai "describe the chatbot-frontend deployment"
+
+# View logs
+kubectl-ai "show me backend logs"
+kubectl-ai "get the last 50 lines of frontend logs"
+
+# Scaling
+kubectl-ai "scale the frontend to 3 replicas"
+
+# Troubleshooting
+kubectl-ai "why is my pod crashlooping"
+kubectl-ai "what events happened in the last 10 minutes"
+```
+
+**Fallback**: Use standard kubectl commands if kubectl-ai is unavailable.
+
+### Kagent - AI-Powered Cluster Monitoring
+
+Kagent provides AI-powered insights for Kubernetes cluster health and monitoring.
+
+**Installation**:
+```bash
+# Check official documentation for latest installation method
+pip install kagent
+# or
+brew install kagent
+```
+
+**Example Usage**:
+```bash
+# Cluster health overview
+kagent health
+
+# Diagnose issues
+kagent diagnose "Why is my pod crashlooping?"
+kagent diagnose "Check memory usage across all pods"
+
+# Service-specific health
+kagent service-health chatbot-frontend
+kagent service-health chatbot-backend
+
+# Resource analysis
+kagent analyze resources
+kagent analyze "show me pods with high CPU usage"
+```
+
+**Fallback**: Use standard kubectl commands for monitoring:
+```bash
+kubectl top pods
+kubectl top nodes
+kubectl describe pod <pod-name>
+kubectl get events --sort-by='.lastTimestamp'
 ```
 
 ---

@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
 
     # Model selection (default to Gemini 2.5 Flash)
-    # Available models: gemini-2.5-flash, gemini-2.5-flash-lite, gpt-4o-mini
+    # Available models: gemini/gemini-2.5-flash, gemini/gemini-2.5-flash-lite, gpt-4o-mini
     llm_model: str = "gemini/gemini-2.5-flash"
 
 

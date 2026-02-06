@@ -5,7 +5,9 @@
       "Bash(git fetch:*)",
       "Bash(powershell:*)",
       "Bash(dir /s /b \"F:\\\\q4-todo-hackathon\\\\specs\\\\001-cloud-native-chatbot\\\\*\")",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)"
     ]
   }
 }
