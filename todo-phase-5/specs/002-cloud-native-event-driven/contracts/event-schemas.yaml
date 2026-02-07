@@ -1,0 +1,468 @@
+# Event Schemas for DoneKaro Cloud-Native Event-Driven System
+# All events follow CloudEvents 1.0 specification
+# Transport: Apache Kafka via Dapr Pub/Sub (pubsub-kafka component)
+# Partition Key: taskId (ensures per-task event ordering)
+
+---
+# ============================================================================
+# TOPIC: task-events
+# Publishers: chat-api, recurring-engine
+# Consumers: recurring-engine, audit-service (P3)
+# Purpose: All task lifecycle state changes
+# ============================================================================
+
+schemas:
+
+  # --- CloudEvents Envelope (common to all events) ---
+  CloudEventEnvelope:
+    type: object
+    required: [specversion, id, source, type, datacontenttype, time, data]
+    properties:
+      specversion:
+        type: string
+        const: "1.0"
+      id:
+        type: string
+        format: uuid
+        description: Unique event identifier
+      source:
+        type: string
+        enum: [chat-api, notification-service, recurring-engine]
+        description: Service that produced the event
+      type:
+        type: string
+        description: CloudEvents type (com.donekaro.{event-type})
+      datacontenttype:
+        type: string
+        const: "application/json"
+      time:
+        type: string
+        format: date-time
+        description: ISO 8601 timestamp of event creation
+      traceid:
+        type: string
+        description: W3C Trace Context trace-id (propagated from Dapr headers)
+      data:
+        type: object
+        description: Event-specific payload
+
+  # --- task-events topic ---
+
+  TaskCreatedEvent:
+    description: Published when a new task is created via chatbot
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task.created"
+          source:
+            const: "chat-api"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-created"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [title, status, etag]
+                properties:
+                  title:
+                    type: string
+                  description:
+                    type: string
+                    nullable: true
+                  status:
+                    type: string
+                    const: "pending"
+                  priority:
+                    type: string
+                    enum: [low, medium, high, urgent]
+                    nullable: true
+                  dueDate:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  recurrenceRule:
+                    type: object
+                    nullable: true
+                    properties:
+                      frequency:
+                        type: string
+                      interval:
+                        type: integer
+                      timeOfDay:
+                        type: string
+                      timezone:
+                        type: string
+                  etag:
+                    type: string
+
+  TaskUpdatedEvent:
+    description: Published when a task is modified
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task.updated"
+          source:
+            const: "chat-api"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-updated"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [before, after, changedFields, etag]
+                properties:
+                  before:
+                    type: object
+                    description: Previous values of changed fields only
+                  after:
+                    type: object
+                    description: New values of changed fields only
+                  changedFields:
+                    type: array
+                    items:
+                      type: string
+                    description: List of field names that changed
+                  etag:
+                    type: string
+
+  TaskCompletedEvent:
+    description: Published when a task is marked as completed
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task.completed"
+          source:
+            const: "chat-api"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-completed"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [title, completedAt, hasRecurrence, etag]
+                properties:
+                  title:
+                    type: string
+                  completedAt:
+                    type: string
+                    format: date-time
+                  hasRecurrence:
+                    type: boolean
+                    description: If true, recurring-engine will generate next instance
+                  etag:
+                    type: string
+
+  TaskDeletedEvent:
+    description: Published when a task is deleted
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task.deleted"
+          source:
+            const: "chat-api"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-deleted"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [title, deletedAt]
+                properties:
+                  title:
+                    type: string
+                  deletedAt:
+                    type: string
+                    format: date-time
+
+  TaskRecurrenceGeneratedEvent:
+    description: Published when recurring-engine creates the next instance
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task.recurrence-generated"
+          source:
+            const: "recurring-engine"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, parentTaskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-recurrence-generated"
+              taskId:
+                type: string
+                format: uuid
+                description: ID of the newly generated task instance
+              parentTaskId:
+                type: string
+                format: uuid
+                description: ID of the original recurring task
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [title, status, dueDate, recurrenceRule, instanceNumber, etag]
+                properties:
+                  title:
+                    type: string
+                  status:
+                    type: string
+                    const: "pending"
+                  dueDate:
+                    type: string
+                    format: date-time
+                  recurrenceRule:
+                    type: object
+                    properties:
+                      frequency:
+                        type: string
+                      timeOfDay:
+                        type: string
+                      timezone:
+                        type: string
+                  instanceNumber:
+                    type: integer
+                    description: Monotonic counter for this recurring task
+                  etag:
+                    type: string
+
+  # --- reminders topic ---
+  # ============================================================================
+  # TOPIC: reminders
+  # Publishers: recurring-engine
+  # Consumers: notification-service
+  # Purpose: Trigger notification delivery for due dates and recurring triggers
+  # ============================================================================
+
+  ReminderFiredEvent:
+    description: Published when a scheduled reminder fires (due date approaching)
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.reminder.fired"
+          source:
+            const: "recurring-engine"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "reminder-fired"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [taskTitle, dueDate, reminderType, reminderLevel, notificationChannel]
+                properties:
+                  taskTitle:
+                    type: string
+                  dueDate:
+                    type: string
+                    format: date-time
+                  reminderType:
+                    type: string
+                    enum: [due-date, recurring-trigger]
+                  reminderLevel:
+                    type: string
+                    enum:
+                      - day-before
+                      - 12-hours-before
+                      - 6-hours-before
+                      - 3-hours-before
+                      - 1-hour-before
+                      - 30-minutes-before
+                      - overdue
+                  notificationChannel:
+                    type: string
+                    enum: [browser-push]
+
+  RecurringTriggerEvent:
+    description: Published when a recurring task's scheduled time arrives
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.reminder.recurring-trigger"
+          source:
+            const: "recurring-engine"
+          data:
+            type: object
+            required: [eventId, eventType, taskId, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "recurring-trigger"
+              taskId:
+                type: string
+                format: uuid
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [taskTitle, recurrenceRule, triggerReason]
+                properties:
+                  taskTitle:
+                    type: string
+                  recurrenceRule:
+                    type: object
+                    properties:
+                      frequency:
+                        type: string
+                      timeOfDay:
+                        type: string
+                  triggerReason:
+                    type: string
+                    enum: [scheduled-job]
+
+  # --- task-updates topic ---
+  # ============================================================================
+  # TOPIC: task-updates
+  # Publishers: chat-api
+  # Consumers: notification-service, frontend (via SSE bridge)
+  # Purpose: Real-time task change propagation for cross-client updates (FR-007)
+  # ============================================================================
+
+  TaskUpdateBroadcastEvent:
+    description: Published for every task change to enable cross-client real-time updates
+    allOf:
+      - $ref: "#/schemas/CloudEventEnvelope"
+      - properties:
+          type:
+            const: "com.donekaro.task-update.broadcast"
+          source:
+            const: "chat-api"
+          data:
+            type: object
+            required: [eventId, eventType, userId, timestamp, data]
+            properties:
+              eventId:
+                type: string
+                format: uuid
+              eventType:
+                type: string
+                const: "task-update-broadcast"
+              userId:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              data:
+                type: object
+                required: [action, taskId, task]
+                properties:
+                  action:
+                    type: string
+                    enum: [created, updated, completed, deleted]
+                  taskId:
+                    type: string
+                    format: uuid
+                  task:
+                    type: object
+                    nullable: true
+                    description: Full task object (null for deleted)
+                    properties:
+                      id:
+                        type: string
+                      title:
+                        type: string
+                      status:
+                        type: string
+                      priority:
+                        type: string
+                        nullable: true
+                      dueDate:
+                        type: string
+                        format: date-time
+                        nullable: true
+                      tags:
+                        type: array
+                        items:
+                          type: string

@@ -1,0 +1,552 @@
+openapi: "3.1.0"
+info:
+  title: DoneKaro Chat API
+  description: |
+    User-facing API for the DoneKaro cloud-native task system.
+    Handles conversational task management via AI chatbot,
+    task CRUD operations, and real-time event streaming (SSE).
+    All state operations go through Dapr State Management API.
+    All events are published via Dapr Pub/Sub to Kafka.
+  version: "1.0.0"
+  contact:
+    name: DoneKaro Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development (via Dapr sidecar)
+  - url: http://chat-api.donekaro.svc.cluster.local
+    description: In-cluster (Kubernetes)
+
+security:
+  - BearerAuth: []
+
+paths:
+  /chat:
+    post:
+      operationId: sendChatMessage
+      summary: Send a message to the AI chatbot
+      description: |
+        Accepts a natural language message, processes it through the AI agent
+        (LiteLLM/Gemini), executes any task operations, publishes events,
+        and returns a conversational response.
+        Satisfies: FR-001, FR-002, FR-010
+      tags: [Chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chatbot response with optional task operation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: AI service or state store temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events/stream:
+    get:
+      operationId: streamTaskUpdates
+      summary: SSE stream for real-time task updates
+      description: |
+        Server-Sent Events endpoint that bridges Kafka task-updates topic
+        to browser clients. Auto-reconnects via EventSource API.
+        Satisfies: FR-007
+      tags: [Events]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  SSE format:
+                  id: {event-id}
+                  event: task-update
+                  data: {JSON TaskUpdateBroadcast}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      summary: List all tasks for the authenticated user
+      description: |
+        Retrieves all tasks from Dapr state store using the index-key pattern.
+        Returns tasks ordered by created_at descending.
+        Satisfies: FR-001
+      tags: [Tasks]
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /tasks/{taskId}:
+    get:
+      operationId: getTask
+      summary: Get a specific task
+      tags: [Tasks]
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: ETag for optimistic locking (FR-017)
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateTask
+      summary: Update a task (full replacement)
+      description: |
+        Updates a task with optimistic locking via ETag.
+        Publishes task-updated event to task-events topic.
+        Satisfies: FR-001, FR-002, FR-017
+      tags: [Tasks]
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "409":
+          description: ETag mismatch — concurrent modification detected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      operationId: deleteTask
+      summary: Delete a task
+      description: |
+        Removes task from state store and publishes task-deleted event.
+        Satisfies: FR-001, FR-002
+      tags: [Tasks]
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "204":
+          description: Task deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /tasks/{taskId}/complete:
+    post:
+      operationId: completeTask
+      summary: Mark a task as completed
+      description: |
+        Sets task status to completed. Publishes task-completed event.
+        If task has recurrence rule, recurring-engine will auto-generate
+        the next instance asynchronously.
+        Satisfies: FR-001, FR-002, FR-004
+      tags: [Tasks]
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "200":
+          description: Task completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "409":
+          description: ETag mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /push/subscribe:
+    post:
+      operationId: registerPushSubscription
+      summary: Register browser push subscription
+      description: |
+        Registers a Web Push subscription for the authenticated user.
+        Stored via Dapr State API in notification-service's state.
+      tags: [Push]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionRequest"
+      responses:
+        "201":
+          description: Subscription registered
+
+  /push/unsubscribe:
+    post:
+      operationId: unregisterPushSubscription
+      summary: Unregister browser push subscription
+      tags: [Push]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushUnsubscribeRequest"
+      responses:
+        "204":
+          description: Subscription removed
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Liveness and readiness probe for Kubernetes
+      tags: [System]
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /dapr/subscribe:
+    get:
+      operationId: getDaprSubscriptions
+      summary: Dapr programmatic subscription endpoint
+      description: |
+        Returns topic subscriptions for Dapr sidecar (if using programmatic
+        subscriptions instead of declarative CRDs).
+      tags: [System]
+      security: []
+      responses:
+        "200":
+          description: List of Dapr subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DaprSubscription"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better-Auth
+
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema:
+        type: string
+      description: ETag value for optimistic locking (FR-017)
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          description: Natural language message from the user
+          maxLength: 2000
+          example: "Create a task: Buy groceries"
+        conversation_id:
+          type: string
+          format: uuid
+          description: Existing conversation ID to continue (optional)
+
+    ChatResponse:
+      type: object
+      required: [response]
+      properties:
+        response:
+          type: string
+          description: AI chatbot response text
+          example: "Task 'Buy groceries' created successfully."
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation session ID for continuity
+        task_action:
+          type: object
+          nullable: true
+          description: Details of task operation performed (if any)
+          properties:
+            action:
+              type: string
+              enum: [created, updated, completed, deleted, listed]
+            task_id:
+              type: string
+              format: uuid
+            task_title:
+              type: string
+
+    Task:
+      type: object
+      required: [id, user_id, title, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          maxLength: 2000
+          nullable: true
+        status:
+          type: string
+          enum: [pending, completed, deleted]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          nullable: true
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        due_time:
+          type: string
+          format: time
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        recurrence_rule_id:
+          type: string
+          format: uuid
+          nullable: true
+        parent_task_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID of original recurring task (for generated instances)
+        instance_number:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        etag:
+          type: string
+          description: ETag for concurrency control
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        due_date:
+          type: string
+          format: date
+        due_time:
+          type: string
+          format: time
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        recurrence_rule:
+          $ref: "#/components/schemas/RecurrenceRuleCreate"
+          nullable: true
+
+    RecurrenceRuleCreate:
+      type: object
+      required: [frequency]
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly, weekday, monthly, custom]
+        interval:
+          type: integer
+          minimum: 1
+          default: 1
+        days_of_week:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 6
+          description: "0=Monday, 6=Sunday (required for weekly)"
+        day_of_month:
+          type: integer
+          minimum: 1
+          maximum: 28
+          description: "1-28 only (required for monthly; 29-31 rejected per FR-018)"
+        time_of_day:
+          type: string
+          pattern: "^\\d{2}:\\d{2}$"
+          default: "09:00"
+        timezone:
+          type: string
+          default: UTC
+        cron_expression:
+          type: string
+          description: "5-field cron (required for custom frequency)"
+        end_condition:
+          type: string
+          enum: [never, count, date]
+          default: never
+        end_count:
+          type: integer
+          minimum: 1
+        end_date:
+          type: string
+          format: date
+
+    PushSubscriptionRequest:
+      type: object
+      required: [endpoint, auth, p256dh]
+      properties:
+        endpoint:
+          type: string
+          format: uri
+        auth:
+          type: string
+        p256dh:
+          type: string
+
+    PushUnsubscribeRequest:
+      type: object
+      required: [endpoint]
+      properties:
+        endpoint:
+          type: string
+          format: uri
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded]
+        service:
+          type: string
+          example: chat-api
+        version:
+          type: string
+          example: "1.0.0"
+        dapr:
+          type: object
+          properties:
+            connected:
+              type: boolean
+            state_store:
+              type: string
+              enum: [available, unavailable]
+            pubsub:
+              type: string
+              enum: [available, unavailable]
+
+    DaprSubscription:
+      type: object
+      properties:
+        pubsubname:
+          type: string
+          example: pubsub-kafka
+        topic:
+          type: string
+        route:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: ETAG_MISMATCH
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Task was modified by another request. Please retry."
+        details:
+          type: object
+          nullable: true
+          description: Additional error context
