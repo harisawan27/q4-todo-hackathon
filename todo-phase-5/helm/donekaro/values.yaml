@@ -1,0 +1,127 @@
+# Global settings
+global:
+  namespace: donekaro
+  imagePullPolicy: IfNotPresent
+
+# Chat API Service
+chatApi:
+  replicaCount: 1
+  image:
+    repository: donekaro/chat-api
+    tag: latest
+  service:
+    port: 80
+    targetPort: 8000
+  dapr:
+    enabled: true
+    appId: chat-api
+    appPort: 8000
+    httpPort: 3500
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 70
+  env:
+    LOG_LEVEL: INFO
+
+# Notification Service
+notificationService:
+  replicaCount: 1
+  image:
+    repository: donekaro/notification-service
+    tag: latest
+  service:
+    port: 80
+    targetPort: 8001
+  dapr:
+    enabled: true
+    appId: notification-service
+    appPort: 8001
+    httpPort: 3501
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    LOG_LEVEL: INFO
+
+# Recurring Engine
+recurringEngine:
+  replicaCount: 1
+  image:
+    repository: donekaro/recurring-engine
+    tag: latest
+  service:
+    port: 80
+    targetPort: 8002
+  dapr:
+    enabled: true
+    appId: recurring-engine
+    appPort: 8002
+    httpPort: 3502
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    LOG_LEVEL: INFO
+
+# Frontend
+frontend:
+  replicaCount: 1
+  image:
+    repository: donekaro/frontend
+    tag: latest
+  service:
+    port: 80
+    targetPort: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  ingress:
+    enabled: true
+    className: nginx
+    host: ""
+
+# Kafka (Strimzi)
+kafka:
+  enabled: true
+  replicas: 1
+  storage: ephemeral
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Dapr Components
+dapr:
+  stateStore:
+    name: statestore
+    type: state.postgresql.v2
+  pubSub:
+    name: pubsub
+    type: pubsub.kafka
+  secretStore:
+    name: secretstore
+    type: secretstores.kubernetes

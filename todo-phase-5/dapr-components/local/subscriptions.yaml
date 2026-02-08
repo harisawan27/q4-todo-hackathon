@@ -1,0 +1,76 @@
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: recurring-engine-task-events
+spec:
+  pubsubname: pubsub-kafka
+  topic: task-events
+  routes:
+    rules:
+      - match: event.type == "com.donekaro.task.completed"
+        path: /events/task-completed
+      - match: event.type == "com.donekaro.task.created"
+        path: /events/task-created
+      - match: event.type == "com.donekaro.task.updated"
+        path: /events/task-updated
+      - match: event.type == "com.donekaro.task.deleted"
+        path: /events/task-deleted
+    default: /events/task-events
+  deadLetterTopic: dead-letter-task-events
+  scopes:
+    - recurring-engine
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: notification-reminders
+spec:
+  pubsubname: pubsub-kafka
+  topic: reminders
+  routes:
+    rules:
+      - match: event.type == "com.donekaro.reminder.fired"
+        path: /events/reminder-fired
+      - match: event.type == "com.donekaro.reminder.recurring-trigger"
+        path: /events/recurring-trigger
+    default: /events/reminders
+  deadLetterTopic: dead-letter-reminders
+  scopes:
+    - notification-service
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: notification-task-updates
+spec:
+  pubsubname: pubsub-kafka
+  topic: task-updates
+  routes:
+    default: /events/task-updates
+  deadLetterTopic: dead-letter-task-updates
+  scopes:
+    - notification-service
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: chat-api-task-updates
+spec:
+  pubsubname: pubsub-kafka
+  topic: task-updates
+  routes:
+    default: /events/task-updates
+  scopes:
+    - chat-api
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: chat-api-audit-task-events
+spec:
+  pubsubname: pubsub-kafka
+  topic: task-events
+  routes:
+    default: /events/audit-task-events
+  scopes:
+    - chat-api

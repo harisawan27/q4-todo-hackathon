@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: donekaro
+
+resources:
+  - namespace.yaml
+  - chat-api/deployment.yaml
+  - chat-api/hpa.yaml
+  - notification-service/deployment.yaml
+  - recurring-engine/deployment.yaml
+  - frontend/deployment.yaml
+  - infrastructure/kafka/kafka-cluster.yaml
+  - infrastructure/kafka/kafka-topics.yaml
+  - infrastructure/secrets/secrets-template.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: donekaro

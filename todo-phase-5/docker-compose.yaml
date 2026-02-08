@@ -1,0 +1,199 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────────
+  # Infrastructure
+  # ─────────────────────────────────────────────
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
+    container_name: redpanda
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --mode dev-container
+    ports:
+      - "19092:19092"
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -qi 'healthy.*true'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - donekaro
+
+  placement:
+    image: "daprio/dapr:1.14.4"
+    container_name: dapr-placement
+    command: ["./placement", "--port", "50006"]
+    ports:
+      - "50006:50006"
+    networks:
+      - donekaro
+
+  # ─────────────────────────────────────────────
+  # Frontend (Next.js)
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: "postgresql://neondb_owner:npg_e9QOqS7zjAkE@ep-small-dew-a1btz9gp-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+        BETTER_AUTH_SECRET: "EmSISAnN2Q71NwgotEFWDs8mUg71E3GosA9wqx/uK94="
+        BETTER_AUTH_URL: "http://localhost:3000"
+        API_BACKEND_URL: "http://chat-api:8000"
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://neondb_owner:npg_e9QOqS7zjAkE@ep-small-dew-a1btz9gp-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+      BETTER_AUTH_SECRET: "EmSISAnN2Q71NwgotEFWDs8mUg71E3GosA9wqx/uK94="
+      BETTER_AUTH_URL: "http://localhost:3000"
+      API_BACKEND_URL: "http://chat-api:8000"
+    depends_on:
+      - chat-api
+    networks:
+      - donekaro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─────────────────────────────────────────────
+  # Chat API + Dapr Sidecar
+  # ─────────────────────────────────────────────
+  chat-api:
+    build:
+      context: .
+      dockerfile: services/chat-api/Dockerfile
+    container_name: chat-api
+    ports:
+      - "8000:8000"
+    environment:
+      SERVICE_NAME: chat-api
+      LOG_LEVEL: INFO
+      DAPR_HTTP_PORT: "3500"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - donekaro
+
+  chat-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: chat-api-dapr
+    command:
+      [
+        "./daprd",
+        "--app-id", "chat-api",
+        "--app-port", "8000",
+        "--dapr-http-port", "3500",
+        "--dapr-grpc-port", "50001",
+        "--placement-host-address", "placement:50006",
+        "--resources-path", "/components",
+        "--log-level", "info",
+              ]
+    volumes:
+      - ./dapr-components/local:/components
+      - ./secrets.json:/secrets.json
+    network_mode: "service:chat-api"
+    depends_on:
+      - chat-api
+      - placement
+
+  # ─────────────────────────────────────────────
+  # Notification Service + Dapr Sidecar
+  # ─────────────────────────────────────────────
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "8001:8001"
+    environment:
+      SERVICE_NAME: notification-service
+      LOG_LEVEL: INFO
+      DAPR_HTTP_PORT: "3501"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - donekaro
+
+  notification-service-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: notification-service-dapr
+    command:
+      [
+        "./daprd",
+        "--app-id", "notification-service",
+        "--app-port", "8001",
+        "--dapr-http-port", "3501",
+        "--dapr-grpc-port", "50002",
+        "--placement-host-address", "placement:50006",
+        "--resources-path", "/components",
+        "--log-level", "info",
+              ]
+    volumes:
+      - ./dapr-components/local:/components
+      - ./secrets.json:/secrets.json
+    network_mode: "service:notification-service"
+    depends_on:
+      - notification-service
+      - placement
+
+  # ─────────────────────────────────────────────
+  # Recurring Engine + Dapr Sidecar
+  # ─────────────────────────────────────────────
+  recurring-engine:
+    build:
+      context: .
+      dockerfile: services/recurring-engine/Dockerfile
+    container_name: recurring-engine
+    ports:
+      - "8002:8002"
+    environment:
+      SERVICE_NAME: recurring-engine
+      LOG_LEVEL: INFO
+      DAPR_HTTP_PORT: "3502"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - donekaro
+
+  recurring-engine-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: recurring-engine-dapr
+    command:
+      [
+        "./daprd",
+        "--app-id", "recurring-engine",
+        "--app-port", "8002",
+        "--dapr-http-port", "3502",
+        "--dapr-grpc-port", "50003",
+        "--placement-host-address", "placement:50006",
+        "--resources-path", "/components",
+        "--log-level", "info",
+              ]
+    volumes:
+      - ./dapr-components/local:/components
+      - ./secrets.json:/secrets.json
+    network_mode: "service:recurring-engine"
+    depends_on:
+      - recurring-engine
+      - placement
+
+networks:
+  donekaro:
+    driver: bridge

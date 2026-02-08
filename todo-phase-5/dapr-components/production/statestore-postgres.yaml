@@ -1,0 +1,23 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore-postgres
+  namespace: donekaro
+spec:
+  type: state.postgresql.v2
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: postgres-credentials
+        key: connection-string
+    - name: tableName
+      value: "dapr_state"
+    - name: metadataTableName
+      value: "dapr_metadata"
+    - name: cleanupIntervalInSeconds
+      value: "3600"
+    - name: actorStateStore
+      value: "false"
+  auth:
+    secretStore: kubernetes-secrets

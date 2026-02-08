@@ -1,0 +1,414 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+
+const features = [
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    title: "Lightning Fast",
+    description: "Native performance with instant task creation and updates",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-2.47 2.47a2.25 2.25 0 01-1.591.659H9.061a2.25 2.25 0 01-1.591-.659L5 14.5m14 0V17a2 2 0 01-2 2H7a2 2 0 01-2-2v-2.5" />
+      </svg>
+    ),
+    title: "DoneKaro AI",
+    description: "Your personal AI assistant that helps manage tasks with natural conversations",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    ),
+    title: "Smart Notifications",
+    description: "Get reminded at the right time with intelligent push notifications",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    ),
+    title: "Secure & Private",
+    description: "Your data is protected with industry-standard encryption",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    ),
+    title: "Real-time Sync",
+    description: "Seamlessly sync across all your devices instantly",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      </svg>
+    ),
+    title: "Dark Mode",
+    description: "Easy on the eyes with beautiful dark and light themes",
+  },
+];
+
+const aiFeatures = [
+  {
+    title: "Natural Language Tasks",
+    description: "Just tell the AI what you need to do in plain English. Say \"Remind me to call mom tomorrow at 5pm\" and it's done.",
+  },
+  {
+    title: "Smart Suggestions",
+    description: "Get intelligent recommendations on task prioritization, deadlines, and how to break down complex projects.",
+  },
+  {
+    title: "Quick Actions",
+    description: "Complete, reschedule, or modify tasks just by chatting. No need to navigate through menus.",
+  },
+  {
+    title: "Context Aware",
+    description: "The AI remembers your preferences and patterns to provide personalized assistance.",
+  },
+];
+
+export default function GetAppPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute top-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
+            {/* Left content */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-900/30 px-4 py-1.5 mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">New Release Available</span>
+              </div>
+
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
+                DoneKaro
+                <span className="block text-blue-600 dark:text-blue-400">Mobile App</span>
+              </h1>
+
+              <p className="mt-6 text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto lg:mx-0">
+                Take your productivity everywhere. Get the DoneKaro mobile app for the fastest,
+                most seamless task management experience on your Android device.
+              </p>
+
+              {/* Download Button */}
+              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <a
+                  href="/donekaro-1.0.apk"
+                  download
+                  className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105"
+                >
+                  <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.523 2.047c-.34-.34-.773-.507-1.3-.507H7.777c-.527 0-.96.168-1.3.507-.34.34-.507.773-.507 1.3v17.306c0 .527.168.96.507 1.3.34.34.773.507 1.3.507h8.446c.527 0 .96-.168 1.3-.507.34-.34.507-.773.507-1.3V3.347c0-.527-.168-.96-.507-1.3zM12 20.83c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm4.17-4.17H7.83V4.83h8.34v11.83z"/>
+                  </svg>
+                  <span>Download for Android</span>
+                  <svg className="h-5 w-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </a>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span>Safe & Verified</span>
+                </div>
+              </div>
+
+              {/* Version info */}
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                Version 1.0 • Requires Android 8.0 or higher • 9MB
+              </p>
+            </div>
+
+            {/* Right - Phone mockup (Samsung Galaxy S25 style - flat edges, minimal corners) */}
+            <div className="mt-16 lg:mt-0 flex justify-center">
+              <div className="relative">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[1rem] blur-3xl opacity-20 scale-110" />
+
+                {/* Phone frame - Samsung S25 style with flat edges and subtle corners */}
+                <div className="relative bg-gray-800 rounded-[1.2rem] p-[3px] shadow-2xl">
+                  {/* Metal frame effect */}
+                  <div className="absolute inset-0 rounded-[1.2rem] bg-gradient-to-b from-gray-600 via-gray-800 to-gray-600 opacity-50" />
+
+                  {/* Screen bezel */}
+                  <div className="relative bg-black rounded-[1rem] overflow-hidden">
+                    {/* Screenshot container - full display, no notch */}
+                    <div className="relative w-[270px] h-[596px] overflow-hidden">
+                      <Image
+                        src="/DoneKaro App.png"
+                        alt="DoneKaro App Screenshot"
+                        fill
+                        className="object-cover object-top"
+                        priority
+                        sizes="270px"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Side buttons - power */}
+                  <div className="absolute right-[-2px] top-28 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
+                  {/* Volume buttons */}
+                  <div className="absolute left-[-2px] top-24 w-[3px] h-10 bg-gray-700 rounded-r-sm" />
+                  <div className="absolute left-[-2px] top-36 w-[3px] h-10 bg-gray-700 rounded-r-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Chatbot Feature Section - Main Highlight */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 py-24">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 mb-6">
+              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+              <span className="text-sm font-medium text-white">Powered by AI</span>
+            </div>
+
+            <h2 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
+              Meet DoneKaro AI
+            </h2>
+            <p className="mt-6 text-xl text-blue-100 max-w-3xl mx-auto">
+              Your intelligent task assistant that understands you. Just chat naturally and let AI handle the rest.
+              No more tapping through menus — just tell it what you need.
+            </p>
+          </div>
+
+          {/* AI Chat Demo */}
+          <div className="max-w-2xl mx-auto mb-16">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="space-y-4">
+                {/* User message */}
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-xs">
+                    <p className="text-sm">Add a task to buy groceries tomorrow morning</p>
+                  </div>
+                </div>
+                {/* AI response */}
+                <div className="flex justify-start">
+                  <div className="bg-white/20 text-white rounded-2xl rounded-bl-md px-4 py-2 max-w-sm">
+                    <p className="text-sm">Done! I&apos;ve created a task &quot;Buy groceries&quot; scheduled for tomorrow at 9:00 AM. Would you like me to add any specific items to the task description?</p>
+                  </div>
+                </div>
+                {/* User message */}
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-xs">
+                    <p className="text-sm">Yes, add milk, eggs, and bread</p>
+                  </div>
+                </div>
+                {/* AI response */}
+                <div className="flex justify-start">
+                  <div className="bg-white/20 text-white rounded-2xl rounded-bl-md px-4 py-2 max-w-sm">
+                    <p className="text-sm">Updated! Your grocery task now includes: milk, eggs, and bread. Anything else you need help with?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Feature Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {aiFeatures.map((feature, index) => (
+              <div
+                key={feature.title}
+                className="group bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/20 hover:border-white/30 transition-all duration-300"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 text-white mb-4">
+                  <span className="font-bold">{index + 1}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-blue-100 text-sm">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA in AI section */}
+          <div className="text-center mt-12">
+            <a
+              href="/donekaro-1.0.apk"
+              download
+              className="inline-flex items-center justify-center gap-3 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-indigo-600 shadow-lg hover:bg-blue-50 transition-colors"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Try DoneKaro AI Now
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+            Why you&apos;ll love the app
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Built for speed and reliability, the DoneKaro app brings all your tasks right to your fingertips.
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
+                {feature.icon}
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                {feature.title}
+              </h3>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-16 shadow-2xl">
+          {/* Background pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#grid)" />
+            </svg>
+          </div>
+
+          <div className="relative text-center">
+            <h2 className="text-3xl font-bold text-white sm:text-4xl">
+              Ready to get more done?
+            </h2>
+            <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">
+              Download DoneKaro now and experience the future of task management. It&apos;s free and always will be.
+            </p>
+            <div className="mt-8">
+              <a
+                href="/donekaro-1.0.apk"
+                download
+                className="inline-flex items-center justify-center gap-3 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg hover:bg-blue-50 transition-colors"
+              >
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.523 2.047c-.34-.34-.773-.507-1.3-.507H7.777c-.527 0-.96.168-1.3.507-.34.34-.507.773-.507 1.3v17.306c0 .527.168.96.507 1.3.34.34.773.507 1.3.507h8.446c.527 0 .96-.168 1.3-.507.34-.34.507-.773.507-1.3V3.347c0-.527-.168-.96-.507-1.3zM12 20.83c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm4.17-4.17H7.83V4.83h8.34v11.83z"/>
+                </svg>
+                Download APK
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Installation Guide */}
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            How to install
+          </h2>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <div className="space-y-6">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                1
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Download the APK</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Click the download button above to get the latest version of DoneKaro app.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                2
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Enable unknown sources</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Go to Settings &rarr; Security &rarr; Enable &quot;Install from unknown sources&quot; for your browser.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                3
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Install & enjoy</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Open the downloaded file and follow the installation prompts. You&apos;re all set!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer note */}
+      <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            DoneKaro is available for Android devices. iOS version coming soon.
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

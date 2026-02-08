@@ -1,0 +1,24 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-kafka
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "redpanda:9092"
+    - name: consumerGroup
+      value: "{appId}-group"
+    - name: authType
+      value: "none"
+    - name: initialOffset
+      value: "oldest"
+    - name: maxMessageBytes
+      value: "1048576"
+    - name: consumeRetryInterval
+      value: "1000ms"
+    - name: requiredAcks
+      value: "all"
+    - name: disableTls
+      value: "true"

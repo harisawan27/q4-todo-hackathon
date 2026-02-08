@@ -1,0 +1,41 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: task-events
+  namespace: donekaro
+  labels:
+    strimzi.io/cluster: donekaro-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 604800000  # 7 days
+    cleanup.policy: delete
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: reminders
+  namespace: donekaro
+  labels:
+    strimzi.io/cluster: donekaro-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 259200000  # 3 days
+    cleanup.policy: delete
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: task-updates
+  namespace: donekaro
+  labels:
+    strimzi.io/cluster: donekaro-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 86400000  # 1 day
+    cleanup.policy: delete

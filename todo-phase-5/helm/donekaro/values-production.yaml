@@ -1,0 +1,60 @@
+# Production overrides
+global:
+  imagePullPolicy: Always
+
+chatApi:
+  replicaCount: 2
+  image:
+    repository: your-acr.azurecr.io/donekaro/chat-api
+    tag: latest
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPU: 70
+
+notificationService:
+  replicaCount: 2
+  image:
+    repository: your-acr.azurecr.io/donekaro/notification-service
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+recurringEngine:
+  replicaCount: 2
+  image:
+    repository: your-acr.azurecr.io/donekaro/recurring-engine
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: your-acr.azurecr.io/donekaro/frontend
+    tag: latest
+  ingress:
+    enabled: true
+    className: nginx
+    host: app.donekaro.com
+
+kafka:
+  enabled: false  # Use Redpanda Cloud in production

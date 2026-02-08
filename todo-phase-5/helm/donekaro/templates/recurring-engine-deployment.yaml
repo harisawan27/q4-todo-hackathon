@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recurring-engine
+  labels:
+    app: recurring-engine
+    {{- include "donekaro.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.recurringEngine.replicaCount }}
+  selector:
+    matchLabels:
+      app: recurring-engine
+  template:
+    metadata:
+      labels:
+        app: recurring-engine
+      annotations:
+        {{- include "donekaro.daprAnnotations" .Values.recurringEngine.dapr | nindent 8 }}
+    spec:
+      containers:
+        - name: recurring-engine
+          image: "{{ .Values.recurringEngine.image.repository }}:{{ .Values.recurringEngine.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.recurringEngine.dapr.appPort }}
+          env:
+            - name: SERVICE_NAME
+              value: "recurring-engine"
+            - name: LOG_LEVEL
+              value: {{ .Values.recurringEngine.env.LOG_LEVEL | quote }}
+            - name: DAPR_HTTP_PORT
+              value: {{ .Values.recurringEngine.dapr.httpPort | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.recurringEngine.dapr.appPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.recurringEngine.dapr.appPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.recurringEngine.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recurring-engine
+  labels:
+    app: recurring-engine
+    {{- include "donekaro.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: recurring-engine
+  ports:
+    - port: {{ .Values.recurringEngine.service.port }}
+      targetPort: {{ .Values.recurringEngine.service.targetPort }}
+      protocol: TCP
+  type: ClusterIP

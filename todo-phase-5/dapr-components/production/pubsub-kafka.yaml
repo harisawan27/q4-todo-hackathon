@@ -1,0 +1,37 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-kafka
+  namespace: donekaro
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      secretKeyRef:
+        name: kafka-credentials
+        key: brokers
+    - name: consumerGroup
+      value: "{appId}-group"
+    - name: authType
+      value: "password"
+    - name: saslUsername
+      secretKeyRef:
+        name: kafka-credentials
+        key: username
+    - name: saslPassword
+      secretKeyRef:
+        name: kafka-credentials
+        key: password
+    - name: saslMechanism
+      value: "SCRAM-SHA-256"
+    - name: initialOffset
+      value: "oldest"
+    - name: maxMessageBytes
+      value: "1048576"
+    - name: requiredAcks
+      value: "all"
+    - name: disableTls
+      value: "false"
+  auth:
+    secretStore: kubernetes-secrets

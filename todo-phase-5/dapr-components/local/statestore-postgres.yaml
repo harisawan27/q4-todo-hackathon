@@ -1,0 +1,21 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore-postgres
+spec:
+  type: state.postgresql
+  version: v1
+  initTimeout: 30s
+  metadata:
+    - name: connectionString
+      value: "postgresql://neondb_owner:npg_e9QOqS7zjAkE@ep-small-dew-a1btz9gp-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+    - name: tableName
+      value: "dapr_state"
+    - name: metadataTableName
+      value: "dapr_metadata"
+    - name: cleanupIntervalInSeconds
+      value: "3600"
+    - name: actorStateStore
+      value: "false"
+    - name: timeout
+      value: "30"

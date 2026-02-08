@@ -1,0 +1,13 @@
+apiVersion: v2
+name: donekaro
+description: DoneKaro — Cloud-Native Event-Driven Task Management System
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - task-management
+  - dapr
+  - event-driven
+  - microservices
+maintainers:
+  - name: DoneKaro Team

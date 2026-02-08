@@ -1,0 +1,33 @@
+# Local/Minikube overrides
+global:
+  imagePullPolicy: IfNotPresent
+
+chatApi:
+  replicaCount: 1
+  image:
+    tag: local
+  hpa:
+    enabled: false
+
+notificationService:
+  replicaCount: 1
+  image:
+    tag: local
+
+recurringEngine:
+  replicaCount: 1
+  image:
+    tag: local
+
+frontend:
+  replicaCount: 1
+  image:
+    tag: local
+  ingress:
+    enabled: true
+    host: donekaro.local
+
+kafka:
+  enabled: true
+  replicas: 1
+  storage: ephemeral

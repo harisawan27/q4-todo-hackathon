@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3B82F6">
+    <title>DoneKaro - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);
+            color: #ffffff;
+            padding: 24px;
+            padding-top: max(24px, env(safe-area-inset-top));
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+            padding-left: max(24px, env(safe-area-inset-left));
+            padding-right: max(24px, env(safe-area-inset-right));
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 320px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icon-container {
+            width: 140px;
+            height: 140px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        /* Cloud with slash - similar to big apps */
+        .cloud-icon {
+            width: 100%;
+            height: 100%;
+            opacity: 0.95;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        .message {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.75;
+            margin-bottom: 40px;
+            max-width: 280px;
+        }
+
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #ffffff;
+            color: #3B82F6;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .retry-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .retry-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.5;
+            font-weight: 500;
+        }
+
+        /* Floating animation for the cloud */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .icon-container {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Pulse animation for the no-connection indicator */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .pulse-dot {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Loading state for button */
+        .retry-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .retry-btn.loading .retry-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon-container">
+            <!-- Cloud with no-connection icon -->
+            <svg class="cloud-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Cloud shape -->
+                <path d="M95 65C95 55.059 86.941 47 77 47C76.374 47 75.755 47.034 75.145 47.098C72.156 36.44 62.471 28.5 51 28.5C37.193 28.5 26 39.693 26 53.5C26 54.174 26.026 54.842 26.078 55.503C19.396 58.091 14.5 64.435 14.5 71.75C14.5 81.309 22.191 89 31.75 89H87.25C92.635 89 97 84.635 97 79.25C97 75.032 94.327 71.455 90.574 70.106C93.401 68.596 95 66.015 95 65Z" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- WiFi signal with slash -->
+                <g transform="translate(42, 50)">
+                    <!-- WiFi arcs -->
+                    <path d="M18 28h.01" stroke="white" stroke-width="3" stroke-linecap="round" class="pulse-dot"/>
+                    <path d="M12 22a8.5 8.5 0 0 1 12 0" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M6 16a15 15 0 0 1 24 0" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M0 10a22 22 0 0 1 36 0" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/>
+
+                    <!-- Diagonal slash -->
+                    <path d="M4 4L32 32" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                </g>
+            </svg>
+        </div>
+
+        <h1 class="title">You're Offline</h1>
+        <p class="subtitle">No internet connection</p>
+        <p class="message">
+            Check your connection and tap below to try again
+        </p>
+
+        <button class="retry-btn" onclick="handleRetry(this)">
+            <svg class="retry-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4v6h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Try Again
+        </button>
+    </div>
+
+    <p class="footer">DoneKaro</p>
+
+    <script>
+        function handleRetry(btn) {
+            btn.classList.add('loading');
+            // Small delay for visual feedback before reload
+            setTimeout(function() {
+                window.location.reload();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
